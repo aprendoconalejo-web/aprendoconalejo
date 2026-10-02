@@ -1,0 +1,107 @@
+<!-- BANNER DE COOKIES (Flotante) -->
+<div id="cookie-banner" class="fixed bottom-0 left-0 right-0 bg-brand-dark text-white p-4 z-[60] shadow-2xl cookie-hidden flex flex-col md:flex-row items-center justify-center gap-4 text-xs md:text-sm border-t border-gray-700">
+    <p class="text-center md:text-left">
+        🍪 Uso cookies para mejorar tu experiencia y guardar tus preferencias de aprendizaje.
+        <a href="/politicas" class="underline text-brand-yellow hover:text-white ml-1">Ver Política</a>
+    </p>
+    <button onclick="aceptarCookies()" class="bg-brand-blue hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full transition shadow-md whitespace-nowrap">
+        ENTENDIDO
+    </button>
+</div>
+
+<!-- PIE DE PÁGINA PRINCIPAL (Footer) -->
+<footer class="bg-brand-dark text-gray-400 py-12 px-6 text-xs pb-32">
+    <div class="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-center md:text-left">
+        
+        <div class="space-y-4">
+            <h4 class="font-black text-white uppercase tracking-widest text-sm">Sobre Alejo</h4>
+            <p class="leading-relaxed">Docente con más de 19 años de experiencia transformando la manera de aprender matemáticas. Mi misión es hacer fácil lo difícil.</p>
+            <a href="/perfil" class="text-brand-yellow hover:underline font-bold">Conoce más de mi trayectoria aquí →</a>
+        </div>
+        
+        <div class="space-y-4">
+            <h4 class="font-black text-white uppercase tracking-widest text-sm">Contacto</h4>
+            <ul class="space-y-3">
+                <li>
+                    <a href="https://api.whatsapp.com/send?phone=573002779958" target="_blank" class="hover:text-white flex items-center justify-center md:justify-start gap-2">
+                        <i class="fa-brands fa-whatsapp text-green-500 text-lg"></i> +57 300 277 9958
+                    </a>
+                </li>
+                <li>
+                    <a href="mailto:contacto@aprendoconalejo.com" class="hover:text-white flex items-center justify-center md:justify-start gap-2 lowercase">
+                        <i class="fa-solid fa-envelope text-brand-yellow text-lg"></i> contacto@aprendoconalejo.com
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="space-y-4">
+            <h4 class="font-black text-white uppercase tracking-widest text-sm">Sígueme</h4>
+            <div class="flex justify-center md:justify-start gap-4">
+                <a href="https://www.tiktok.com/@aprendoconalejo" target="_blank" class="bg-gray-800 hover:bg-black w-10 h-10 flex items-center justify-center rounded-full transition text-white">
+                    <i class="fa-brands fa-tiktok"></i>
+                </a>
+                <a href="https://www.youtube.com/@aprendoconalejo" target="_blank" class="bg-gray-800 hover:bg-red-600 w-10 h-10 flex items-center justify-center rounded-full transition text-white">
+                    <i class="fa-brands fa-youtube"></i>
+                </a>
+                <a href="https://www.instagram.com/aprendoconalejo" target="_blank" class="bg-gray-800 hover:bg-pink-600 w-10 h-10 flex items-center justify-center rounded-full transition text-white">
+                    <i class="fa-brands fa-instagram"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <h4 class="font-black text-white uppercase tracking-widest text-sm">Legal</h4>
+            <ul class="space-y-2">
+                <li><a href="/terminos_clases" class="hover:text-brand-yellow transition underline decoration-gray-600 underline-offset-4 font-bold">TyC Clases Privadas</a></li>
+                <li><a href="/politicas" class="hover:text-brand-yellow transition underline decoration-gray-600 underline-offset-4 font-bold">Política de Datos</a></li>
+            </ul>
+            <p class="pt-4 text-[10px] text-gray-600">
+                © <span id="current-year"></span> aprendoconalejo.com. Todos los derechos reservados.
+            </p>
+        </div>
+    </div>
+</footer>
+
+<!-- SCRIPTS GLOBALES -->
+<script>
+    function aceptarCookies() {
+        localStorage.setItem('cookies_alejo', 'true');
+        const banner = document.getElementById('cookie-banner');
+        if (banner) banner.classList.add('cookie-hidden');
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Año dinámico sin PHP
+        const yearSpan = document.getElementById('current-year');
+        if (yearSpan) {
+            yearSpan.textContent = new Date().getFullYear();
+        }
+
+        // Control del menú móvil
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuIcon = menuBtn ? menuBtn.querySelector('i') : null;
+
+        if (menuBtn && mobileMenu && menuIcon) {
+            menuBtn.addEventListener('click', () => {
+                const isClosed = mobileMenu.classList.contains('pointer-events-none');
+                if (isClosed) {
+                    mobileMenu.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+                    menuIcon.classList.replace('fa-bars', 'fa-xmark');
+                } else {
+                    mobileMenu.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+                    menuIcon.classList.replace('fa-xmark', 'fa-bars');
+                }
+            });
+        }
+
+        // Banner de cookies
+        if (!localStorage.getItem('cookies_alejo')) {
+            setTimeout(() => { 
+                const banner = document.getElementById('cookie-banner');
+                if (banner) banner.classList.remove('cookie-hidden'); 
+            }, 1500);
+        }
+    });
+</script>
