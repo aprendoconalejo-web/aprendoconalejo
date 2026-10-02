@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2563eb">
+
+    <title>Aprendo con Alejo - Clases de Matemáticas e Inglés</title>
+    <meta name="description" content="Supera tus dificultades académicas y alcanza excelentes calificaciones en matemáticas e inglés. Clases virtuales personalizadas.">
+    <meta name="author" content="Alejandro Torres">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Aprendo con Alejo - Clases de Matemáticas e Inglés">
+    <meta property="og:description" content="Supera tus dificultades académicas con explicaciones paso a paso y herramientas interactivas.">
+    <meta property="og:url" content="https://aprendoconalejo.com">
+    <meta property="og:image" content="https://aprendoconalejo.com/assets/img/logo.png">
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-68382R5RZS"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-68382R5RZS');
+    </script>
+
+    <!-- Fuentes e Iconos -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ["Inter", "sans-serif"] },
+                    colors: { 
+                        brand: { 
+                            blue: "#2563eb", 
+                            dark: "#1e293b", 
+                            yellow: "#facc15" 
+                        } 
+                    },
+                },
+            },
+        };
+    </script>
+
+    <link rel="stylesheet" href="/assets/css/estilos.css?v=1.0.1">
+</head>
+
+<body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
+
+<!-- HEADER -->
+<header class="bg-brand-blue text-white shadow-lg sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+        <a href="/" class="flex items-center gap-2 relative z-50">
+            <img src="https://aprendoconalejo.com/assets/img/logo.png" class="h-10 w-10 rounded-full bg-white p-1" alt="Logo Aprendo con Alejo" onerror="this.src='https://ui-avatars.com/api/?name=Alejo&background=facc15&color=1e293b'">
+            <span class="font-extrabold tracking-tighter uppercase text-sm md:text-base">Aprendo con Alejo</span>
+        </a>
+        
+        <nav class="hidden md:flex gap-6 font-bold text-xs md:text-sm uppercase items-center" id="nav-desktop">
+            <a href="/" class="hover:text-brand-yellow transition border-b-2 border-transparent hover:border-brand-yellow pb-1">INICIO</a>
+            <a href="#servicios" class="hover:text-brand-yellow transition border-b-2 border-transparent hover:border-brand-yellow pb-1">SERVICIOS</a>
+            <a href="#beneficios" class="hover:text-brand-yellow transition border-b-2 border-transparent hover:border-brand-yellow pb-1">METODOLOGÍA</a>
+            <a href="#sobre-mi" class="hover:text-brand-yellow transition border-b-2 border-transparent hover:border-brand-yellow pb-1">SOBRE MÍ</a>
+            <a href="#opiniones" class="hover:text-brand-yellow transition border-b-2 border-transparent hover:border-brand-yellow pb-1">OPINIONES</a>
+        </nav>
+
+        <button id="menu-btn" class="md:hidden text-2xl focus:outline-none relative z-50 transition-transform duration-300" aria-label="Abrir menú de navegación">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+    </div>
+
+    <div id="mobile-menu" class="fixed inset-0 bg-brand-blue z-40 flex flex-col items-center justify-center gap-8 opacity-0 pointer-events-none transition-all duration-300 transform scale-95 text-xl font-black uppercase tracking-widest text-white">
+        <a href="/" class="hover:text-brand-yellow transition">INICIO</a>
+        <a href="#servicios" class="hover:text-brand-yellow transition">SERVICIOS</a>
+        <a href="#beneficios" class="hover:text-brand-yellow transition">METODOLOGÍA</a>
+        <a href="#sobre-mi" class="hover:text-brand-yellow transition">SOBRE MÍ</a>
+        <a href="#opiniones" class="hover:text-brand-yellow transition">OPINIONES</a>
+    </div>
+</header>
+
+<main class="flex-grow">
+
+    <!-- SECCIÓN 1: INTRODUCCIÓN -->
+    <section id="servicios" class="py-16 md:py-24 bg-white border-b border-gray-100">
+        <div class="container mx-auto px-6 max-w-6xl">
+            <div class="text-center max-w-3xl mx-auto space-y-4">
+                <span class="text-xs md:text-sm font-black uppercase tracking-widest text-brand-blue bg-blue-50 py-1 px-4 rounded-full inline-block">
+                    Tutorías Virtuales Personalizadas
+                </span>
+                <h1 class="text-3xl md:text-5xl font-black text-brand-dark tracking-tight leading-tight">
+                    ¿QUIERES MEJORAR EN MATEMÁTICAS?
+                </h1>
+                <p class="text-base md:text-lg text-gray-600 font-medium leading-relaxed">
+                    Yo te ayudaré a superar todas tus dificultades académicas y alcanzar excelentes calificaciones en tus estudios.
+                </p>
+                <div class="pt-2">
+                    <button onclick="abrirChatTawk()" class="bg-brand-blue hover:bg-blue-700 text-white font-black py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5 text-sm md:text-base inline-flex items-center gap-2">
+                        <i class="fa-solid fa-comments"></i> HABLEMOS
+                    </button>
+                </div>
+            </div>
+
+            <!-- Servicios por nivel -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-16">
+                <!-- Primaria y Bachillerato -->
+                <div class="bg-gray-50 border border-gray-200 rounded-3xl p-8 flex flex-col justify-between shadow-sm hover:shadow-md transition">
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3 text-brand-blue">
+                            <span class="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-school"></i>
+                            </span>
+                            <div>
+                                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Para padres y madres</span>
+                                <h2 class="text-xl font-extrabold text-brand-dark">Primaria y Bachillerato</h2>
+                            </div>
+                        </div>
+                        <p class="text-gray-700 text-sm leading-relaxed">
+                            Yo le ayudaré a tu hij(a) a estar al día con sus tareas, a preparar sus evaluaciones y a que vaya entendiendo todo lo que le estén explicando en el colegio.
+                        </p>
+                        <div class="bg-white p-4 rounded-2xl border border-gray-200 text-xs text-gray-600">
+                            <strong>Metodología:</strong> Yo me adapto a la metodología del colegio y a los estándares que piden. Espacio de trabajo seguro con herramientas visuales y explicaciones paso a paso.
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-gray-200">
+                        <span class="text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Áreas de trabajo</span>
+                        <div class="flex flex-wrap gap-1.5 text-xs font-semibold text-gray-700">
+                            <span class="bg-white border border-gray-200 px-3 py-1 rounded-full">Matemáticas</span>
+                            <span class="bg-white border border-gray-200 px-3 py-1 rounded-full">Estadística</span>
+                            <span class="bg-white border border-gray-200 px-3 py-1 rounded-full">Álgebra</span>
+                            <span class="bg-white border border-gray-200 px-3 py-1 rounded-full">Trigonometría</span>
+                            <span class="bg-white border border-gray-200 px-3 py-1 rounded-full">Cálculo</span>
+                            <span class="bg-white border border-gray-200 px-3 py-1 rounded-full">Geometría</span>
+                            <span class="bg-yellow-100 text-yellow-900 border border-yellow-200 px-3 py-1 rounded-full">Inglés</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nivel Universitario -->
+                <div class="bg-gray-50 border border-gray-200 rounded-3xl p-8 flex flex-col justify-between shadow-sm hover:shadow-md transition">
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3 text-brand-dark">
+                            <span class="w-12 h-12 rounded-2xl bg-gray-200 flex items-center justify-center text-xl text-brand-blue">
+                                <i class="fa-solid fa-graduation-cap"></i>
+                            </span>
+                            <div>
+                                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Estudiantes de educación superior</span>
+                                <h2 class="text-xl font-extrabold text-brand-dark">Nivel Universitario</h2>
+                            </div>
+                        </div>
+                        <p class="text-gray-700 text-sm leading-relaxed">
+                            Te ayudaré a entender los temas que te explican rápido en clase profundizando con varios ejercicios, explicando paso a paso cada concepto para que entiendas y puedas estar a la par con el profesor en el aula de clase.
+                        </p>
+                        <div class="bg-white p-4 rounded-2xl border border-gray-200 text-xs text-gray-600">
+                            <strong>Metodología:</strong> Yo me adapto al material de estudio y a la dinámica que lleva el profesor en clase para evitar confusiones.
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-gray-200">
+                        <span class="text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Áreas de especialidad</span>
+                        <div class="flex flex-wrap gap-1.5 text-xs font-semibold text-gray-700">
+                            <span class="bg-white border border-gray-200 px-3 py-1 rounded-full">Precálculo</span>
+                            <span class="bg-white border border-gray-200 px-3 py-1 rounded-full">Cálculo Diferencial</span>
+                            <span class="bg-white border border-gray-200 px-3 py-1 rounded-full">Cálculo Integral</span>
+                            <span class="bg-white border border-gray-200 px-3 py-1 rounded-full">Cálculo Vectorial</span>
+                            <span class="bg-white border border-gray-200 px-3 py-1 rounded-full">Estadística y Probabilidad</span>
+                            <span class="bg-white border border-gray-200 px-3 py-1 rounded-full">Álgebra Lineal</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN 2: CARACTERÍSTICAS Y BENEFICIOS -->
+    <section id="beneficios" class="py-16 md:py-24 bg-gray-50">
+        <div class="container mx-auto px-6 max-w-6xl">
+            <div class="text-center max-w-2xl mx-auto mb-16 space-y-2">
+                <span class="text-xs font-black uppercase tracking-widest text-brand-blue">Ventajas del acompañamiento</span>
+                <h2 class="text-3xl md:text-4xl font-black text-brand-dark">Diseñado para tu comodidad y aprendizaje</h2>
+            </div>
+
+            <!-- Bento Grid de beneficios -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Beneficio 1 -->
+                <div class="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm hover:border-brand-blue transition space-y-3">
+                    <span class="w-10 h-10 rounded-xl bg-blue-50 text-brand-blue flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-clock"></i>
+                    </span>
+                    <h3 class="font-extrabold text-brand-dark text-base">Tiempos libres</h3>
+                    <p class="text-gray-600 text-xs leading-relaxed">Aprovecha al máximo tus momentos disponibles sin alterar tu rutina diaria.</p>
+                </div>
+
+                <!-- Beneficio 2 -->
+                <div class="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm hover:border-brand-blue transition space-y-3">
+                    <span class="w-10 h-10 rounded-xl bg-blue-50 text-brand-blue flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-wifi"></i>
+                    </span>
+                    <h3 class="font-extrabold text-brand-dark text-base">Conexión flexible</h3>
+                    <p class="text-gray-600 text-xs leading-relaxed">Conéctate desde cualquier lugar y a la hora que mejor se ajuste a tu horario.</p>
+                </div>
+
+                <!-- Beneficio 3 -->
+                <div class="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm hover:border-brand-blue transition space-y-3">
+                    <span class="w-10 h-10 rounded-xl bg-blue-50 text-brand-blue flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-laptop-code"></i>
+                    </span>
+                    <h3 class="font-extrabold text-brand-dark text-base">Tecnología interactiva</h3>
+                    <p class="text-gray-600 text-xs leading-relaxed">Herramientas visuales y dinámicas que garantizan un aprendizaje claro y duradero.</p>
+                </div>
+
+                <!-- Beneficio 4 -->
+                <div class="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm hover:border-brand-blue transition space-y-3">
+                    <span class="w-10 h-10 rounded-xl bg-blue-50 text-brand-blue flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-video"></i>
+                    </span>
+                    <h3 class="font-extrabold text-brand-dark text-base">Google Meet</h3>
+                    <p class="text-gray-600 text-xs leading-relaxed">Sesiones fluidas y directas sin instalaciones engorrosas.</p>
+                </div>
+
+                <!-- Beneficio 5 -->
+                <div class="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm hover:border-brand-blue transition space-y-3">
+                    <span class="w-10 h-10 rounded-xl bg-yellow-50 text-yellow-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-language"></i>
+                    </span>
+                    <h3 class="font-extrabold text-brand-dark text-base">Apoyo bilingüe</h3>
+                    <p class="text-gray-600 text-xs leading-relaxed">Trabajo especializado en el área de inglés para primaria y bachillerato.</p>
+                </div>
+
+                <!-- Beneficio 6 -->
+                <div class="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm hover:border-brand-blue transition space-y-3">
+                    <span class="w-10 h-10 rounded-xl bg-blue-50 text-brand-blue flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-person-chalkboard"></i>
+                    </span>
+                    <h3 class="font-extrabold text-brand-dark text-base">Clases activas</h3>
+                    <p class="text-gray-600 text-xs leading-relaxed">El estudiante participa activamente en cada ejercicio mientras es orientado.</p>
+                </div>
+
+                <!-- Beneficio 7 -->
+                <div class="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm hover:border-brand-blue transition space-y-3">
+                    <span class="w-10 h-10 rounded-xl bg-blue-50 text-brand-blue flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-stairs"></i>
+                    </span>
+                    <h3 class="font-extrabold text-brand-dark text-base">Paso a paso</h3>
+                    <p class="text-gray-600 text-xs leading-relaxed">Explicaciones prácticas y sencillas diseñadas para avanzar rápido sin vacíos.</p>
+                </div>
+
+                <!-- Beneficio 8 -->
+                <div class="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm hover:border-brand-blue transition space-y-3">
+                    <span class="w-10 h-10 rounded-xl bg-blue-50 text-brand-blue flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-user-check"></i>
+                    </span>
+                    <h3 class="font-extrabold text-brand-dark text-base">Ritmo propio</h3>
+                    <p class="text-gray-600 text-xs leading-relaxed">Adaptación completa a las necesidades y velocidad de comprensión de cada persona.</p>
+                </div>
+
+                <!-- Beneficio 9 -->
+                <div class="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm hover:border-brand-blue transition space-y-3">
+                    <span class="w-10 h-10 rounded-xl bg-blue-50 text-brand-blue flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-award"></i>
+                    </span>
+                    <h3 class="font-extrabold text-brand-dark text-base">+20 Años de trayectoria</h3>
+                    <p class="text-gray-600 text-xs leading-relaxed">Amplia experiencia docente orientando a estudiantes en colegios y universidades.</p>
+                </div>
+            </div>
+
+            <!-- Compatibilidad y Tarifa -->
+            <div class="mt-12 bg-white rounded-3xl p-8 border border-gray-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-8">
+                <div class="space-y-2 text-center md:text-left">
+                    <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Dispositivos compatibles</span>
+                    <p class="text-sm text-gray-700">Toma tus clases desde computador, tablet o celular. Solo requieres conexión a internet estable.</p>
+                    <div class="flex items-center justify-center md:justify-start gap-4 text-gray-500 text-lg pt-1">
+                        <i class="fa-solid fa-desktop" title="Computador"></i>
+                        <i class="fa-solid fa-tablet-screen-button" title="Tablet"></i>
+                        <i class="fa-solid fa-mobile-screen" title="Celular"></i>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-100 rounded-2xl p-6 text-center md:text-right shrink-0">
+                    <span class="text-xs font-bold text-gray-500 uppercase tracking-widest block">Tarifa accesible</span>
+                    <div class="text-2xl md:text-3xl font-black text-brand-blue">
+                        Desde $5.000 COP <span class="text-sm font-semibold text-gray-600">/ clase*</span>
+                    </div>
+                    <p class="text-[11px] text-gray-500 mt-1">El valor varía según el nivel y la materia.<br>*Aplica términos y condiciones.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN 5: SOBRE MÍ (ESTILO DIPLOMA) -->
+    <section id="sobre-mi" class="py-16 md:py-24 bg-white border-y border-gray-100">
+        <div class="container mx-auto px-6 max-w-4xl">
+            <div class="text-center mb-12">
+                <span class="text-xs font-black uppercase tracking-widest text-brand-blue">Perfil profesional</span>
+                <h2 class="text-3xl md:text-4xl font-black text-brand-dark">Sobre mí</h2>
+            </div>
+
+            <!-- Contenedor Diploma -->
+            <div class="bg-amber-50/40 border-4 border-double border-amber-300 rounded-3xl p-8 md:p-12 shadow-sm space-y-8">
+                <div class="flex flex-col md:flex-row items-center gap-8">
+                    <!-- Foto de perfil -->
+                    <div class="shrink-0">
+                        <div class="w-36 h-36 md:w-44 md:h-44 rounded-full border-4 border-brand-blue p-1 shadow-md bg-white overflow-hidden">
+                            <!-- Reemplazar src con la URL definitiva de tu foto -->
+                            <img src="https://aprendoconalejo.com/assets/img/logo.png" alt="Alejandro Torres" class="w-full h-full object-cover rounded-full" onerror="this.src='https://ui-avatars.com/api/?name=Alejandro+Torres&background=2563eb&color=ffffff'">
+                        </div>
+                    </div>
+
+                    <!-- Párrafo Introductorio -->
+                    <div class="space-y-3 text-center md:text-left">
+                        <h3 class="text-2xl font-black text-brand-dark">Alejandro Torres</h3>
+                        <p class="text-xs md:text-sm text-gray-700 leading-relaxed italic">
+                            "Soy Alejandro Torres, un profesional de la educación con mucha disposición y experiencia para ayudar a mis estudiantes a alcanzar sus metas, a entender desde una perspectiva gentil, amable, con mucho profesionalismo, enfocado en ayudarle. Quiero ayudarle a mis estudiantes a sacar todo su potencial, a descubrir todo el potencial que ellos tienen para que alcancen sus objetivos académicos."
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Títulos y Formación (Líneas Separadas) -->
+                <div class="pt-6 border-t border-amber-200 space-y-3">
+                    <span class="text-xs font-black text-amber-900 uppercase tracking-widest block mb-4">Trayectoria y Formación Académica</span>
+                    
+                    <ul class="space-y-3 text-xs md:text-sm text-gray-800">
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-certificate text-brand-blue mt-1"></i>
+                            <span><strong>Matemático</strong> — Universidad Nacional de Colombia.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-certificate text-brand-blue mt-1"></i>
+                            <span><strong>Especialista en Educación Matemática</strong> — Universidad Pedagógica Nacional.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-certificate text-brand-blue mt-1"></i>
+                            <span><strong>Certificación C1 en Inglés</strong>.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-certificate text-brand-blue mt-1"></i>
+                            <span><strong>Diplomado en Pedagogía Conceptual</strong>.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-certificate text-brand-blue mt-1"></i>
+                            <span><strong>Especialista en Creación e Implementación de Herramientas Digitales para la Enseñanza</strong>.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-certificate text-brand-blue mt-1"></i>
+                            <span><strong>Experiencia de más de 20 años</strong> en colegios y universidades de alto nivel en Bogotá.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN 3: OPINIONES (CARGA ALFANUMÉRICA DE CAPTURAS) -->
+    <section id="opiniones" class="py-16 md:py-24 bg-gray-50">
+        <div class="container mx-auto px-6 max-w-6xl">
+            <div class="text-center max-w-2xl mx-auto mb-12 space-y-2">
+                <span class="text-xs font-black uppercase tracking-widest text-brand-blue">Testimonios</span>
+                <h2 class="text-3xl md:text-4xl font-black text-brand-dark">Lo que dicen los estudiantes y familias</h2>
+                <p class="text-xs md:text-sm text-gray-600">Comentarios y valoraciones compartidas por la comunidad.</p>
+            </div>
+
+            <!-- Galería generada alfanuméricamente por JavaScript -->
+            <div id="opiniones-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <!-- Se inyectan las imágenes mediante el script de abajo -->
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="bg-brand-dark text-gray-400 py-12 px-6 text-xs pb-32">
+    <div class="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-center md:text-left">
+        <div class="space-y-4">
+            <h4 class="font-black text-white uppercase tracking-widest text-sm">Sobre Alejo</h4>
+            <p class="leading-relaxed">Docente con más de 19 años de experiencia transformando la manera de aprender matemáticas. Mi misión es hacer fácil lo difícil.</p>
+            <a href="#sobre-mi" class="text-brand-yellow hover:underline font-bold">Conoce más de mi trayectoria aquí →</a>
+        </div>
+        
+        <div class="space-y-4">
+            <h4 class="font-black text-white uppercase tracking-widest text-sm">Contacto</h4>
+            <ul class="space-y-3">
+                <li>
+                    <a href="https://api.whatsapp.com/send?phone=573002779958" target="_blank" class="hover:text-white flex items-center justify-center md:justify-start gap-2">
+                        <i class="fa-brands fa-whatsapp text-green-500 text-lg"></i> +57 300 277 9958
+                    </a>
+                </li>
+                <li>
+                    <a href="mailto:correo@aprendoconalejo.com" class="hover:text-white flex items-center justify-center md:justify-start gap-2 lowercase">
+                        <i class="fa-solid fa-envelope text-brand-yellow text-lg"></i> correo@aprendoconalejo.com
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="space-y-4">
+            <h4 class="font-black text-white uppercase tracking-widest text-sm">Sígueme</h4>
+            <div class="flex justify-center md:justify-start gap-4">
+                <a href="https://www.tiktok.com/@aprendoconalejo" target="_blank" class="bg-gray-800 hover:bg-black w-10 h-10 flex items-center justify-center rounded-full transition text-white">
+                    <i class="fa-brands fa-tiktok"></i>
+                </a>
+                <a href="https://www.youtube.com/@aprendoconalejo" target="_blank" class="bg-gray-800 hover:bg-red-600 w-10 h-10 flex items-center justify-center rounded-full transition text-white">
+                    <i class="fa-brands fa-youtube"></i>
+                </a>
+                <a href="https://www.instagram.com/aprendoconalejo" target="_blank" class="bg-gray-800 hover:bg-pink-600 w-10 h-10 flex items-center justify-center rounded-full transition text-white">
+                    <i class="fa-brands fa-instagram"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <h4 class="font-black text-white uppercase tracking-widest text-sm">Legal</h4>
+            <ul class="space-y-2">
+                <li><a href="/terminos_clases" class="hover:text-brand-yellow transition underline decoration-gray-600 underline-offset-4 font-bold">TyC Clases Privadas</a></li>
+                <li><a href="/politicas" class="hover:text-brand-yellow transition underline decoration-gray-600 underline-offset-4 font-bold">Política de Datos</a></li>
+            </ul>
+            <p class="pt-4 text-[10px] text-gray-600">
+                © <span id="current-year"></span> Aprendo con Alejo. Todos los derechos reservados.
+            </p>
+        </div>
+    </div>
+</footer>
+
+<!-- SCRIPT TAWK.TO (Reemplaza con tu Property ID de Tawk.to) -->
+<script type="text/javascript">
+var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
+(function(){
+var s1 = document.createElement("script"),s0 = document.getElementsByTagName("script")[0];
+s1.async = true;
+s1.src = 'https://embed.tawk.to/TU_PROPERTY_ID/default';
+s1.charset = 'UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+
+// Función para abrir el chat directamente desde el botón Hablemos
+function abrirChatTawk() {
+    if (typeof Tawk_API !== 'undefined' && Tawk_API.maximize) {
+        Tawk_API.maximize();
+    } else {
+        alert("El sistema de chat se está conectando. Por favor intenta de nuevo en un segundo.");
+    }
+}
+</script>
+
+<!-- SCRIPTS DE NAVEGACIÓN Y CARGA DE OPINIONES -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Año dinámico
+        const yearSpan = document.getElementById('current-year');
+        if (yearSpan) yearSpan.textContent = new Date().getFullYear();
+
+        // Control del menú móvil
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuIcon = menuBtn ? menuBtn.querySelector('i') : null;
+
+        if (menuBtn && mobileMenu && menuIcon) {
+            menuBtn.addEventListener('click', () => {
+                const isClosed = mobileMenu.classList.contains('pointer-events-none');
+                if (isClosed) {
+                    mobileMenu.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+                    menuIcon.classList.replace('fa-bars', 'fa-xmark');
+                } else {
+                    mobileMenu.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+                    menuIcon.classList.replace('fa-xmark', 'fa-bars');
+                }
+            });
+
+            // Cerrar menú al hacer click en cualquier link móvil
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+                    menuIcon.classList.replace('fa-xmark', 'fa-bars');
+                });
+            });
+        }
+
+        // Carga y ordenamiento alfanumérico de opiniones
+        const opinionesContainer = document.getElementById('opiniones-grid');
+        if (opinionesContainer) {
+            // Lista de nombres de archivos en la carpeta assets/img/opiniones/
+            const listaImagenes = ["B1.jpg", "A2.jpg", "A1.jpg"]; 
+
+            // Ordenamiento alfanumérico estándar
+            listaImagenes.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+
+            listaImagenes.forEach(imgNombre => {
+                const div = document.createElement('div');
+                div.className = "bg-white p-2 rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex items-center justify-center";
+                div.innerHTML = `<img src="/assets/img/opiniones/${imgNombre}" alt="Opinión de estudiante" class="w-full h-auto rounded-xl object-cover hover:scale-105 transition duration-300">`;
+                opinionesContainer.appendChild(div);
+            });
+        }
+    });
+</script>
+
+</body>
+</html>
