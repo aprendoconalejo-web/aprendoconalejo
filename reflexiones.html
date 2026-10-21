@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Reflexión de Figuras Geométricas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap');
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            overflow: hidden;
+            touch-action: none;
+            background-color: #f8fafc;
+            user-select: none;
+        }
+        
+        h1, .font-heading {
+            font-family: 'Fredoka One', cursive;
+        }
+
+        #game-container {
+            display: none;
+        }
+
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .star-anim {
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(-45deg); opacity: 0; }
+            60% { transform: translate(-50%, -50%) scale(1.2) rotate(10deg); opacity: 1; }
+            80% { transform: translate(-50%, -50%) scale(0.95) rotate(-5deg); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .pulse-badge {
+            animation: pulseBadge 1.5s infinite;
+        }
+
+        @keyframes pulseBadge {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+        }
+
+        #ui-layer {
+            pointer-events: none;
+        }
+        .pointer-events-auto {
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen">
+
+    <!-- Start Screen -->
+    <div id="start-screen" class="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 z-50 text-white p-4">
+        <div class="text-7xl mb-4 animate-bounce">📐✨</div>
+        <h1 class="text-4xl md:text-7xl mb-4 text-center drop-shadow-lg px-4">¡Arquitecta de los Reflejos!</h1>
+        <p class="text-lg md:text-2xl mb-8 max-w-2xl text-center px-4 font-bold text-indigo-100 leading-relaxed">
+            Refleja <span class="text-yellow-300 underline">figuras completas</span> vértice por vértice cruzando el eje rojo.<br>
+            Tienes <span class="text-yellow-300">2 intentos</span> por cada punto o puedes usar el botón <span class="text-yellow-300">Siguiente</span>.<br>
+            ¡Después de las primeras <span class="text-emerald-300">20 figuras</span> desbloquearás el reto de <span class="text-pink-300 underline">Ejes Oblicuos (Diagonales)</span>!
+        </p>
+        <button id="start-btn" class="bg-yellow-400 hover:bg-yellow-300 text-yellow-950 font-heading text-2xl md:text-4xl py-4 px-12 rounded-full shadow-[0_6px_0_#b45309] hover:shadow-[0_3px_0_#b45309] hover:translate-y-1 transition-all cursor-pointer">
+            ¡COMENZAR MISIÓN!
+        </button>
+        <button id="start-oblique-btn" class="mt-4 bg-pink-500 hover:bg-pink-400 text-white font-heading text-xl md:text-2xl py-3 px-8 rounded-full shadow-[0_4px_0_#be185d] hover:shadow-[0_2px_0_#be185d] hover:translate-y-1 transition-all cursor-pointer">
+            Saltar a Fase 2: Ejes Oblicuos
+        </button>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="game-over-screen" class="hidden fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-700 z-50 text-white p-4">
+        <div class="text-7xl mb-2 animate-bounce">🏆👑</div>
+        <h1 class="text-5xl md:text-7xl mb-4 text-center drop-shadow-lg">¡Maestra de la Simetría!</h1>
+        <p class="text-xl md:text-3xl mb-6 text-center px-4 font-bold text-emerald-100">
+            ¡Increíble! Has dominado las reflexiones horizontales, verticales y oblicuas.
+        </p>
+        <div class="bg-white/20 backdrop-blur-md rounded-3xl p-6 mb-8 text-center border-2 border-white/40 shadow-xl">
+            <div class="text-lg uppercase tracking-widest font-bold text-emerald-200 mb-1">Puntaje Final</div>
+            <div class="text-6xl font-heading text-yellow-300 drop-shadow" id="final-points">0</div>
+        </div>
+        <button id="restart-btn" class="bg-yellow-400 hover:bg-yellow-300 text-yellow-950 font-heading text-2xl py-4 px-10 rounded-full shadow-[0_5px_0_#b45309] hover:shadow-[0_2px_0_#b45309] hover:translate-y-1 transition-all cursor-pointer">
+            Jugar de nuevo
+        </button>
+    </div>
+
+    <!-- Game Container -->
+    <div id="game-container" class="relative w-full h-full">
+        <!-- The Canvas -->
+        <canvas id="game-canvas"></canvas>
+
+        <!-- UI Overlay (pointer-events-none para no bloquear nunca el clic en los puntos del plano) -->
+        <div id="ui-layer" class="absolute inset-0 flex flex-col justify-between p-2 md:p-5 pointer-events-none">
+            <!-- Top Bar -->
+            <div class="flex flex-wrap justify-between items-start gap-2">
+                <!-- Progress & Score Card -->
+                <div class="flex gap-3 items-center bg-white/90 backdrop-blur rounded-2xl p-2.5 md:p-3.5 shadow-xl border-2 border-indigo-200 pointer-events-none">
+                    <div class="px-2 border-r-2 border-slate-200">
+                        <div id="stage-label" class="text-indigo-800 font-black text-[10px] md:text-xs uppercase tracking-wider">Fase 1: Ejes Rectos</div>
+                        <div class="text-xl md:text-3xl font-heading text-indigo-600 flex items-center gap-1">
+                            🔷 <span id="shapes-display">0</span><span id="shapes-goal-label" class="text-sm md:text-lg text-slate-400">/20</span>
+                        </div>
+                    </div>
+                    <div class="px-2 border-r-2 border-slate-200">
+                        <div class="text-amber-800 font-black text-[10px] md:text-xs uppercase tracking-wider">Puntos</div>
+                        <div class="text-xl md:text-3xl font-heading text-amber-500 flex items-center gap-1">
+                            ⭐ <span id="points-display">0</span>
+                        </div>
+                    </div>
+                    <div class="px-2">
+                        <div class="text-rose-800 font-black text-[10px] md:text-xs uppercase tracking-wider">Intentos</div>
+                        <div class="text-xl md:text-3xl font-heading text-rose-500 flex items-center gap-1">
+                            🎯 <span id="attempts-display">2/2</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Shape & Target Vertex Banner -->
+                <div class="bg-indigo-950/90 text-white backdrop-blur rounded-2xl p-2.5 md:p-3.5 shadow-xl border-2 border-indigo-400 flex flex-col items-center pulse-badge pointer-events-none">
+                    <div id="shape-name-display" class="text-xs font-bold text-indigo-300 uppercase tracking-widest mb-1">Figura: Triángulo</div>
+                    <div class="text-sm md:text-lg font-black flex items-center gap-2">
+                        <span>Refleja el punto:</span>
+                        <span id="target-vertex-badge" class="bg-amber-400 text-amber-950 font-heading px-2.5 py-0.5 rounded-full text-base md:text-xl shadow">A</span>
+                    </div>
+                    <!-- Step dots -->
+                    <div id="vertex-steps" class="flex gap-1.5 mt-1.5"></div>
+                </div>
+                
+                <!-- Hint Box -->
+                <div id="hint-box" class="hidden bg-amber-50/95 border-l-4 border-amber-500 text-amber-900 p-3 rounded-xl shadow-lg max-w-xs md:max-w-sm pointer-events-none">
+                    <p id="hint-title" class="font-black text-amber-700 flex items-center gap-1 text-sm md:text-base">💡 ¡Pista (Te queda 1 intento)!</p>
+                    <p id="hint-text" class="text-xs md:text-sm mt-1 font-semibold"></p>
+                </div>
+            </div>
+            
+            <!-- Bottom Bar with Interactive Next / Skip Controls -->
+            <div class="flex flex-wrap items-center justify-center gap-3 pb-1">
+                <span id="bottom-instruction" class="inline-block bg-slate-900/80 text-white text-xs md:text-sm font-bold px-4 py-2 rounded-full backdrop-blur shadow-lg border border-white/15 pointer-events-none">
+                    Toca en la cuadrícula dónde queda el reflejo del punto amarillo (2 intentos por punto)
+                </span>
+                
+                <div class="flex gap-2 pointer-events-auto">
+                    <button id="next-vertex-btn" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-heading text-xs md:text-sm px-4 py-2 rounded-full shadow-[0_3px_0_#b45309] active:translate-y-0.5 transition-all cursor-pointer flex items-center gap-1">
+                        ⏭️ Siguiente Punto
+                    </button>
+                    <button id="next-shape-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-heading text-xs md:text-sm px-4 py-2 rounded-full shadow-[0_3px_0_#312e81] active:translate-y-0.5 transition-all cursor-pointer flex items-center gap-1">
+                        🔄 Cambiar Figura
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Animation Container -->
+        <div id="success-anim" class="hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40 pointer-events-none text-center">
+            <div class="text-7xl md:text-9xl drop-shadow-[0_0_25px_rgba(250,204,21,0.9)]">🌟</div>
+            <div id="success-banner-text" class="font-heading text-2xl md:text-4xl text-white bg-emerald-500 px-6 py-2 rounded-full shadow-2xl border-4 border-white mt-2 whitespace-nowrap">
+                ¡Figura Completada!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State Variables
+        let completedShapes = 0;
+        const obliqueUnlockThreshold = 20; // After 20 shapes, oblique lines appear
+        const totalShapesGoal = 40;        // 20 orthogonal + 20 oblique shapes to graduate
+        let points = 0;
+        let streak = 0;
+
+        let gridMin = -10;
+        let gridMax = 10;
+        let cellSize = 0;
+        let originX = 0;
+        let originY = 0;
+        
+        const vertexNames = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+        // Predefined relative polygon templates (dx, dy from an anchor point)
+        const shapeTemplates = [
+            { name: "Triángulo Rectángulo", offsets: [{x:0, y:0}, {x:3, y:0}, {x:0, y:4}] },
+            { name: "Triángulo Isósceles", offsets: [{x:0, y:0}, {x:4, y:0}, {x:2, y:3}] },
+            { name: "Triángulo Escaleno", offsets: [{x:0, y:1}, {x:4, y:0}, {x:1, y:3}] },
+            { name: "Cuadrado", offsets: [{x:0, y:0}, {x:3, y:0}, {x:3, y:3}, {x:0, y:3}] },
+            { name: "Rectángulo", offsets: [{x:0, y:0}, {x:4, y:0}, {x:4, y:2}, {x:0, y:2}] },
+            { name: "Rombo", offsets: [{x:2, y:0}, {x:4, y:2}, {x:2, y:4}, {x:0, y:2}] },
+            { name: "Trapecio", offsets: [{x:0, y:0}, {x:4, y:0}, {x:3, y:3}, {x:1, y:3}] },
+            { name: "Paralelogramo", offsets: [{x:0, y:0}, {x:3, y:0}, {x:4, y:3}, {x:1, y:3}] },
+            { name: "Cometa", offsets: [{x:2, y:0}, {x:4, y:2}, {x:2, y:4}, {x:0, y:2}] },
+            { name: "Punta de Flecha", offsets: [{x:0, y:0}, {x:2, y:3}, {x:4, y:0}, {x:2, y:1}] },
+            { name: "Casa (Pentágono)", offsets: [{x:0, y:0}, {x:3, y:0}, {x:3, y:2}, {x:1, y:3}, {x:0, y:2}] }
+        ];
+
+        let currentLevel = {
+            shapeName: "",
+            vertices: [],         // Original polygon vertices [{x, y, label}]
+            reflectedVertices: [],// Expected reflected vertices [{x, y, label}]
+            currentVertexIndex: 0,
+            // axis: 'x' (vertical line x=c), 'y' (horizontal line y=c), 'oblique_pos' (y = x + c), 'oblique_neg' (y = -x + c)
+            reflectionLine: { axis: 'x', value: 0 },
+            attemptsOnCurrent: 0, // Max 2 attempts per vertex
+            wrongClick: null,     // Stores last wrong click {x, y}
+            showingSolutionForVertex: false,
+            isCompletedAnimating: false,
+            fillAlpha: 0
+        };
+
+        let mousePos = { x: null, y: null };
+        let floatingTexts = [];
+        let audioCtx;
+
+        // DOM Elements
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const startScreen = document.getElementById('start-screen');
+        const gameContainer = document.getElementById('game-container');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const stageLabel = document.getElementById('stage-label');
+        const shapesDisplay = document.getElementById('shapes-display');
+        const shapesGoalLabel = document.getElementById('shapes-goal-label');
+        const pointsDisplay = document.getElementById('points-display');
+        const attemptsDisplay = document.getElementById('attempts-display');
+        const finalPointsDisplay = document.getElementById('final-points');
+        const shapeNameDisplay = document.getElementById('shape-name-display');
+        const targetVertexBadge = document.getElementById('target-vertex-badge');
+        const vertexStepsContainer = document.getElementById('vertex-steps');
+        const hintBox = document.getElementById('hint-box');
+        const hintTitle = document.getElementById('hint-title');
+        const hintText = document.getElementById('hint-text');
+        const bottomInstruction = document.getElementById('bottom-instruction');
+        const nextVertexBtn = document.getElementById('next-vertex-btn');
+        const nextShapeBtn = document.getElementById('next-shape-btn');
+        const successAnim = document.getElementById('success-anim');
+        const successBannerText = document.getElementById('success-banner-text');
+
+        // Synthesized Sound Effects
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playVertexSuccessSound(vertexIdx) {
+            if (!audioCtx) return;
+            const baseFreqs = [440, 493.88, 554.37, 659.25, 739.99, 880];
+            const freq = baseFreqs[vertexIdx % baseFreqs.length];
+            const startTime = audioCtx.currentTime;
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, startTime);
+            osc.frequency.exponentialRampToValueAtTime(freq * 1.25, startTime + 0.18);
+
+            gain.gain.setValueAtTime(0, startTime);
+            gain.gain.linearRampToValueAtTime(0.25, startTime + 0.03);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.25);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(startTime);
+            osc.stop(startTime + 0.26);
+        }
+
+        function playShapeCompleteFanfare() {
+            if (!audioCtx) return;
+            const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+            const startTime = audioCtx.currentTime;
+
+            notes.forEach((freq, index) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, startTime + index * 0.07);
+
+                gain.gain.setValueAtTime(0, startTime + index * 0.07);
+                gain.gain.linearRampToValueAtTime(0.22, startTime + index * 0.07 + 0.03);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + index * 0.07 + 0.55);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(startTime + index * 0.07);
+                osc.stop(startTime + index * 0.07 + 0.6);
+            });
+        }
+
+        function playErrorSound() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.3);
+            
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.32);
+        }
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const range = gridMax - gridMin;
+            // Optimización para computadores (Desktop): usar más altura y cuadrícula más grande
+            const isDesktop = window.innerWidth >= 1024;
+            const usableWidth = isDesktop ? canvas.width * 0.95 : canvas.width * 0.90;
+            const usableHeight = isDesktop ? canvas.height - 130 : Math.max(260, canvas.height - 190);
+            const minDimension = Math.min(usableWidth, usableHeight); 
+            cellSize = minDimension / range;
+            
+            originX = canvas.width / 2;
+            originY = canvas.height / 2 + (isDesktop ? 0 : 15);
+            
+            draw();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function logicalToScreen(logX, logY) {
+            return {
+                x: originX + logX * cellSize,
+                y: originY - logY * cellSize
+            };
+        }
+
+        // Improved click detection: snaps to nearest grid intersection within generous radius
+        function screenToLogical(screenX, screenY) {
+            const rawX = (screenX - originX) / cellSize;
+            const rawY = (originY - screenY) / cellSize;
+            return {
+                x: Math.max(gridMin, Math.min(gridMax, Math.round(rawX))),
+                y: Math.max(gridMin, Math.min(gridMax, Math.round(rawY)))
+            };
+        }
+
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Subtle background grid
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = '#e2e8f0';
+            
+            for (let i = gridMin; i <= gridMax; i++) {
+                let p1 = logicalToScreen(i, gridMax);
+                let p2 = logicalToScreen(i, gridMin);
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+
+                p1 = logicalToScreen(gridMin, i);
+                p2 = logicalToScreen(gridMax, i);
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+            }
+
+            // Main Cartesian Axes (X and Y)
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = '#94a3b8';
+            
+            let p1 = logicalToScreen(0, gridMax);
+            let p2 = logicalToScreen(0, gridMin);
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+            
+            p1 = logicalToScreen(gridMin, 0);
+            p2 = logicalToScreen(gridMax, 0);
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+
+            // Numbers on axes for easier counting
+            ctx.fillStyle = '#64748b';
+            ctx.font = 'bold 12px Nunito';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            let originScreen = logicalToScreen(0, 0);
+
+            for (let i = gridMin; i <= gridMax; i++) {
+                if (i === 0) continue;
+                let px = logicalToScreen(i, 0);
+                ctx.fillText(i.toString(), px.x, originScreen.y + 4);
+
+                let py = logicalToScreen(0, i);
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(i.toString(), originScreen.x - 6, py.y);
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+            }
+
+            // Axis Letters
+            ctx.font = '900 15px Nunito';
+            ctx.fillStyle = '#475569';
+            ctx.fillText('Eje X', logicalToScreen(gridMax, 0).x - 18, originScreen.y - 20);
+            ctx.fillText('Eje Y', originScreen.x + 26, logicalToScreen(0, gridMax).y + 4);
+        }
+
+        function drawVisualAids() {
+            if (currentLevel.isCompletedAnimating) return;
+            const idx = currentLevel.currentVertexIndex;
+            const p = currentLevel.vertices[idx];
+            if (!p) return;
+
+            const line = currentLevel.reflectionLine;
+            
+            // Dibujar una guía visual PERMANENTE solo para los ejes oblicuos
+            if (line.axis === 'oblique_pos' || line.axis === 'oblique_neg') {
+                ctx.save();
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)'; // Línea celeste
+                ctx.setLineDash([6, 6]);
+                ctx.beginPath();
+                
+                // Línea perpendicular que pasa por el punto 'p'
+                if (line.axis === 'oblique_pos') {
+                    const c_perp = p.x + p.y;
+                    const p1 = logicalToScreen(gridMin, -gridMin + c_perp);
+                    const p2 = logicalToScreen(gridMax, -gridMax + c_perp);
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                } else {
+                    const c_perp = p.y - p.x;
+                    const p1 = logicalToScreen(gridMin, gridMin + c_perp);
+                    const p2 = logicalToScreen(gridMax, gridMax + c_perp);
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                }
+                ctx.stroke();
+                
+                // Dibujar puntitos en las intersecciones de la diagonal para facilitar el conteo visual
+                ctx.fillStyle = 'rgba(56, 189, 248, 0.7)';
+                for(let x = gridMin; x <= gridMax; x+=0.5) {
+                    let y = line.axis === 'oblique_pos' ? (-x + p.x + p.y) : (x - p.x + p.y);
+                    if(y >= gridMin && y <= gridMax) {
+                        let dot = logicalToScreen(x, y);
+                        ctx.beginPath();
+                        ctx.arc(dot.x, dot.y, 4, 0, Math.PI*2);
+                        ctx.fill();
+                    }
+                }
+                ctx.restore();
+                
+                // Etiqueta de la guía
+                if (currentLevel.attemptsOnCurrent === 0) {
+                    const pos = logicalToScreen(p.x, p.y);
+                    ctx.font = 'bold 13px Nunito';
+                    ctx.fillStyle = '#0284c7';
+                    ctx.textAlign = 'left';
+                    ctx.fillText('Guía diagonal', pos.x + 15, pos.y + 25);
+                }
+            }
+        }
+
+        // Helper to compute line endpoints clipped to grid [gridMin, gridMax]
+        function getReflectionLineEndpoints(line) {
+            if (line.axis === 'x') {
+                return {
+                    p1: logicalToScreen(line.value, gridMax),
+                    p2: logicalToScreen(line.value, gridMin),
+                    labelText: line.value === 0 ? "Eje de Simetría (Eje Y)" : `Eje Vertical (x = ${line.value})`
+                };
+            } else if (line.axis === 'y') {
+                return {
+                    p1: logicalToScreen(gridMin, line.value),
+                    p2: logicalToScreen(gridMax, line.value),
+                    labelText: line.value === 0 ? "Eje de Simetría (Eje X)" : `Eje Horizontal (y = ${line.value})`
+                };
+            } else if (line.axis === 'oblique_pos') {
+                // y = x + c
+                const c = line.value;
+                const pts = [];
+                for (let x = gridMin; x <= gridMax; x++) {
+                    const y = x + c;
+                    if (y >= gridMin && y <= gridMax) pts.push({ x, y });
+                }
+                const start = pts[0] || { x: gridMin, y: gridMin };
+                const end = pts[pts.length - 1] || { x: gridMax, y: gridMax };
+                const signStr = c === 0 ? "" : (c > 0 ? ` + ${c}` : ` - ${Math.abs(c)}`);
+                return {
+                    p1: logicalToScreen(start.x, start.y),
+                    p2: logicalToScreen(end.x, end.y),
+                    labelText: `Eje Oblicuo (y = x${signStr})`
+                };
+            } else {
+                // y = -x + c
+                const c = line.value;
+                const pts = [];
+                for (let x = gridMin; x <= gridMax; x++) {
+                    const y = -x + c;
+                    if (y >= gridMin && y <= gridMax) pts.push({ x, y });
+                }
+                const start = pts[0] || { x: gridMin, y: gridMax };
+                const end = pts[pts.length - 1] || { x: gridMax, y: gridMin };
+                const signStr = c === 0 ? "" : (c > 0 ? ` + ${c}` : ` - ${Math.abs(c)}`);
+                return {
+                    p1: logicalToScreen(start.x, start.y),
+                    p2: logicalToScreen(end.x, end.y),
+                    labelText: `Eje Oblicuo (y = -x${signStr})`
+                };
+            }
+        }
+
+        function drawReflectionLine() {
+            const { p1, p2, labelText } = getReflectionLineEndpoints(currentLevel.reflectionLine);
+
+            // Glow behind mirror line
+            ctx.save();
+            ctx.lineWidth = 10;
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.22)';
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+
+            // Main dashed red line
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#ef4444';
+            ctx.setLineDash([12, 8]);
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.restore();
+
+            // Pill label on the reflection axis
+            ctx.save();
+            ctx.font = 'bold 13px Nunito';
+            const textMetrics = ctx.measureText(labelText);
+            const lx = (p1.x * 0.25 + p2.x * 0.75);
+            const ly = (p1.y * 0.25 + p2.y * 0.75) - 14;
+
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath();
+            ctx.roundRect(lx - textMetrics.width / 2 - 10, ly - 11, textMetrics.width + 20, 22, 11);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(labelText, lx, ly);
+            ctx.restore();
+        }
+
+        function drawOriginalShape() {
+            const verts = currentLevel.vertices;
+            if (!verts || verts.length === 0) return;
+
+            ctx.save();
+            ctx.beginPath();
+            verts.forEach((v, idx) => {
+                const pos = logicalToScreen(v.x, v.y);
+                if (idx === 0) ctx.moveTo(pos.x, pos.y);
+                else ctx.lineTo(pos.x, pos.y);
+            });
+            ctx.closePath();
+
+            ctx.fillStyle = 'rgba(59, 130, 246, 0.22)';
+            ctx.fill();
+            ctx.lineWidth = 3.5;
+            ctx.strokeStyle = '#2563eb';
+            ctx.stroke();
+            ctx.restore();
+
+            verts.forEach((v, idx) => {
+                const isTarget = !currentLevel.isCompletedAnimating && idx === currentLevel.currentVertexIndex;
+                const isDone = idx < currentLevel.currentVertexIndex || currentLevel.isCompletedAnimating;
+                
+                if (isTarget) {
+                    const pos = logicalToScreen(v.x, v.y);
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, 16, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(250, 204, 21, 0.38)';
+                    ctx.fill();
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = '#eab308';
+                    ctx.stroke();
+                    ctx.restore();
+                    drawPoint(v.x, v.y, '#f59e0b', v.label, 10);
+                } else if (isDone) {
+                    drawPoint(v.x, v.y, '#1d4ed8', v.label, 7);
+                } else {
+                    drawPoint(v.x, v.y, '#60a5fa', v.label, 7);
+                }
+            });
+        }
+
+        function drawReflectedProgress() {
+            const refVerts = currentLevel.reflectedVertices;
+            const count = currentLevel.isCompletedAnimating ? refVerts.length : currentLevel.currentVertexIndex;
+            if (count === 0) return;
+
+            ctx.save();
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = 'rgba(16, 185, 129, 0.45)';
+            ctx.setLineDash([4, 4]);
+            for (let i = 0; i < count; i++) {
+                const origPos = logicalToScreen(currentLevel.vertices[i].x, currentLevel.vertices[i].y);
+                const refPos = logicalToScreen(refVerts[i].x, refVerts[i].y);
+                ctx.beginPath();
+                ctx.moveTo(origPos.x, origPos.y);
+                ctx.lineTo(refPos.x, refPos.y);
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            ctx.save();
+            ctx.beginPath();
+            for (let i = 0; i < count; i++) {
+                const pos = logicalToScreen(refVerts[i].x, refVerts[i].y);
+                if (i === 0) ctx.moveTo(pos.x, pos.y);
+                else ctx.lineTo(pos.x, pos.y);
+            }
+
+            if (currentLevel.isCompletedAnimating) {
+                ctx.closePath();
+                ctx.fillStyle = `rgba(16, 185, 129, ${currentLevel.fillAlpha})`;
+                ctx.fill();
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = '#059669';
+                ctx.stroke();
+            } else if (count > 1) {
+                ctx.lineWidth = 3.5;
+                ctx.strokeStyle = '#10b981';
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            for (let i = 0; i < count; i++) {
+                const rv = refVerts[i];
+                drawPoint(rv.x, rv.y, '#10b981', rv.label, 8);
+            }
+        }
+
+        function drawPoint(logX, logY, color, label, radius = 8) {
+            const pos = logicalToScreen(logX, logY);
+            ctx.save();
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 8;
+            
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = '#ffffff';
+            ctx.stroke();
+            ctx.restore();
+            
+            if (label) {
+                ctx.save();
+                ctx.font = '900 14px Nunito';
+                const textWidth = ctx.measureText(label).width;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.beginPath();
+                ctx.roundRect(pos.x + 10, pos.y - 23, textWidth + 10, 20, 6);
+                ctx.fill();
+                
+                ctx.fillStyle = color;
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(label, pos.x + 15, pos.y - 13);
+                ctx.restore();
+            }
+        }
+
+        function drawHint() {
+            if (currentLevel.attemptsOnCurrent === 0 || currentLevel.isCompletedAnimating) return;
+
+            const idx = currentLevel.currentVertexIndex;
+            const p = currentLevel.vertices[idx];
+            const ans = currentLevel.reflectedVertices[idx];
+            if (!p || !ans) return;
+
+            // Midpoint on the reflection axis (works for straight and oblique lines!)
+            const intersectX = (p.x + ans.x) / 2;
+            const intersectY = (p.y + ans.y) / 2;
+
+            const pScreen = logicalToScreen(p.x, p.y);
+            const interScreen = logicalToScreen(intersectX, intersectY);
+            const ansScreen = logicalToScreen(ans.x, ans.y);
+
+            // Draw perpendicular guide from original vertex to mirror axis
+            ctx.save();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#f59e0b';
+            ctx.setLineDash([6, 4]);
+            ctx.beginPath();
+            ctx.moveTo(pScreen.x, pScreen.y);
+            ctx.lineTo(interScreen.x, interScreen.y);
+            ctx.stroke();
+
+            // Faded guide on the opposite side to the reflection point
+            ctx.strokeStyle = 'rgba(16, 185, 129, 0.65)';
+            ctx.beginPath();
+            ctx.moveTo(interScreen.x, interScreen.y);
+            ctx.lineTo(ansScreen.x, ansScreen.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Intersection dot on the axis
+            ctx.beginPath();
+            ctx.arc(interScreen.x, interScreen.y, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#f59e0b';
+            ctx.fill();
+            ctx.restore();
+
+            // If student used all 2 attempts, highlight the exact target point so she can click it or click "Siguiente"
+            if (currentLevel.showingSolutionForVertex) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(ansScreen.x, ansScreen.y, 14, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(16, 185, 129, 0.35)';
+                ctx.fill();
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = '#10b981';
+                ctx.stroke();
+                ctx.restore();
+                drawPoint(ans.x, ans.y, '#10b981', `${ans.label} (${ans.x},${ans.y})`, 7);
+            }
+
+            // Draw last wrong click X
+            if (currentLevel.wrongClick) {
+                drawPoint(currentLevel.wrongClick.x, currentLevel.wrongClick.y, '#ef4444', '✗', 6);
+            }
+        }
+
+        function drawHover() {
+            if (currentLevel.isCompletedAnimating) return;
+            if (mousePos.x !== null && mousePos.y !== null) {
+                const logical = screenToLogical(mousePos.x, mousePos.y);
+                if (logical.x >= gridMin && logical.x <= gridMax && logical.y >= gridMin && logical.y <= gridMax) {
+                    const screen = logicalToScreen(logical.x, logical.y);
+
+                    if (currentLevel.currentVertexIndex > 0) {
+                        const prevRef = currentLevel.reflectedVertices[currentLevel.currentVertexIndex - 1];
+                        const prevScreen = logicalToScreen(prevRef.x, prevRef.y);
+                        ctx.save();
+                        ctx.lineWidth = 2;
+                        ctx.strokeStyle = 'rgba(16, 185, 129, 0.45)';
+                        ctx.setLineDash([5, 5]);
+                        ctx.beginPath();
+                        ctx.moveTo(prevScreen.x, prevScreen.y);
+                        ctx.lineTo(screen.x, screen.y);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(screen.x, screen.y, 7, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(245, 158, 11, 0.65)';
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#1e293b';
+                    ctx.font = 'bold 13px Nunito';
+                    ctx.fillText(`(${logical.x}, ${logical.y})`, screen.x + 12, screen.y - 10);
+                    ctx.restore();
+                }
+            }
+        }
+
+        function drawFloatingTexts() {
+            ctx.save();
+            for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                const ft = floatingTexts[i];
+                ctx.font = '900 20px Fredoka One';
+                ctx.fillStyle = `rgba(16, 185, 129, ${ft.alpha})`;
+                ctx.strokeStyle = `rgba(255, 255, 255, ${ft.alpha})`;
+                ctx.lineWidth = 3;
+                ctx.textAlign = 'center';
+                ctx.strokeText(ft.text, ft.x, ft.y);
+                ctx.fillText(ft.text, ft.x, ft.y);
+            }
+            ctx.restore();
+        }
+
+        function draw() {
+            drawGrid();
+            drawReflectionLine();
+            drawVisualAids();
+            drawOriginalShape();
+            drawReflectedProgress();
+            drawHint();
+            drawHover();
+            drawFloatingTexts();
+        }
+
+        function updateHUDForVertex() {
+            const isObliquePhase = completedShapes >= obliqueUnlockThreshold;
+            stageLabel.textContent = isObliquePhase ? "🔥 Fase 2: Ejes Oblicuos" : "Fase 1: Ejes Rectos";
+            stageLabel.className = isObliquePhase 
+                ? "text-pink-600 font-black text-[10px] md:text-xs uppercase tracking-wider"
+                : "text-indigo-800 font-black text-[10px] md:text-xs uppercase tracking-wider";
+
+            shapesGoalLabel.textContent = isObliquePhase ? `/${totalShapesGoal}` : `/${obliqueUnlockThreshold}`;
+            shapeNameDisplay.textContent = `Figura ${completedShapes + 1}: ${currentLevel.shapeName}`;
+            
+            const remainingAttempts = Math.max(0, 2 - currentLevel.attemptsOnCurrent);
+            attemptsDisplay.textContent = `${remainingAttempts}/2`;
+
+            const currentV = currentLevel.vertices[currentLevel.currentVertexIndex];
+            if (currentV) {
+                targetVertexBadge.textContent = `${currentV.label} (${currentV.x}, ${currentV.y})`;
+            }
+
+            vertexStepsContainer.innerHTML = '';
+            currentLevel.vertices.forEach((v, idx) => {
+                const dot = document.createElement('div');
+                if (idx < currentLevel.currentVertexIndex) {
+                    dot.className = "w-6 h-6 rounded-full bg-emerald-400 text-emerald-950 font-black text-xs flex items-center justify-center shadow";
+                    dot.textContent = "✓";
+                } else if (idx === currentLevel.currentVertexIndex) {
+                    dot.className = "w-6 h-6 rounded-full bg-amber-400 text-amber-950 font-black text-xs flex items-center justify-center ring-2 ring-white scale-110 shadow";
+                    dot.textContent = v.label;
+                } else {
+                    dot.className = "w-6 h-6 rounded-full bg-indigo-800 text-indigo-300 font-bold text-xs flex items-center justify-center";
+                    dot.textContent = v.label;
+                }
+                vertexStepsContainer.appendChild(dot);
+            });
+        }
+
+        // Computes reflection of (vx, vy) across straight or oblique line
+        function computeReflectedPoint(vx, vy, line) {
+            if (line.axis === 'x') {
+                return { rx: 2 * line.value - vx, ry: vy, sideDiff: vx - line.value };
+            } else if (line.axis === 'y') {
+                return { rx: vx, ry: 2 * line.value - vy, sideDiff: vy - line.value };
+            } else if (line.axis === 'oblique_pos') {
+                // Reflection across y = x + c  =>  rx = vy - c, ry = vx + c
+                const c = line.value;
+                return { rx: vy - c, ry: vx + c, sideDiff: vy - (vx + c) };
+            } else {
+                // Reflection across y = -x + c =>  rx = c - vy, ry = c - vx
+                const c = line.value;
+                return { rx: c - vy, ry: c - vx, sideDiff: vy - (-vx + c) };
+            }
+        }
+
+        function generateLevel() {
+            hintBox.classList.add('hidden');
+            currentLevel.attemptsOnCurrent = 0;
+            currentLevel.wrongClick = null;
+            currentLevel.showingSolutionForVertex = false;
+            currentLevel.currentVertexIndex = 0;
+            currentLevel.isCompletedAnimating = false;
+            currentLevel.fillAlpha = 0;
+
+            const isObliquePhase = completedShapes >= obliqueUnlockThreshold;
+
+            if (isObliquePhase) {
+                // After 20 shapes: Oblique reflection lines (y = x + c or y = -x + c)
+                const isPosSlope = Math.random() < 0.5;
+                const offsets = [0, 0, -2, -1, 1, 2]; // Favor main diagonals y=x and y=-x, plus shifted diagonals
+                const c = offsets[Math.floor(Math.random() * offsets.length)];
+                currentLevel.reflectionLine = {
+                    axis: isPosSlope ? 'oblique_pos' : 'oblique_neg',
+                    value: c
+                };
+            } else {
+                // First 20 shapes: Horizontal and Vertical lines
+                const type = Math.floor(Math.random() * 4);
+                if (type === 0) {
+                    currentLevel.reflectionLine = { axis: 'x', value: 0 }; // Y-axis
+                } else if (type === 1) {
+                    currentLevel.reflectionLine = { axis: 'y', value: 0 }; // X-axis
+                } else if (type === 2) {
+                    let c = 0;
+                    while (c === 0) c = Math.floor(Math.random() * 5) - 2;
+                    currentLevel.reflectionLine = { axis: 'x', value: c };
+                } else {
+                    let c = 0;
+                    while (c === 0) c = Math.floor(Math.random() * 5) - 2;
+                    currentLevel.reflectionLine = { axis: 'y', value: c };
+                }
+            }
+
+            // Pick a shape template and place it safely inside grid bounds (-8 to 8) so UI never overlaps
+            let validPlacement = false;
+            let safetyCounter = 0;
+            const safeBound = 8;
+
+            while (!validPlacement && safetyCounter < 400) {
+                safetyCounter++;
+                const template = shapeTemplates[Math.floor(Math.random() * shapeTemplates.length)];
+                const anchorX = Math.floor(Math.random() * 15) - 7;
+                const anchorY = Math.floor(Math.random() * 15) - 7;
+
+                const candidateVertices = [];
+                const candidateReflected = [];
+                let allValid = true;
+                let sideSign = 0;
+
+                for (let i = 0; i < template.offsets.length; i++) {
+                    const vx = anchorX + template.offsets[i].x;
+                    const vy = anchorY + template.offsets[i].y;
+
+                    if (vx < -safeBound || vx > safeBound || vy < -safeBound || vy > safeBound) {
+                        allValid = false;
+                        break;
+                    }
+
+                    const { rx, ry, sideDiff } = computeReflectedPoint(vx, vy, currentLevel.reflectionLine);
+
+                    if (sideDiff === 0) {
+                        allValid = false;
+                        break;
+                    }
+
+                    const currentSign = Math.sign(sideDiff);
+                    if (sideSign === 0) sideSign = currentSign;
+                    else if (sideSign !== currentSign) {
+                        allValid = false;
+                        break;
+                    }
+
+                    if (rx < -safeBound || rx > safeBound || ry < -safeBound || ry > safeBound) {
+                        allValid = false;
+                        break;
+                    }
+
+                    candidateVertices.push({ x: vx, y: vy, label: vertexNames[i] });
+                    candidateReflected.push({ x: rx, y: ry, label: `${vertexNames[i]}'` });
+                }
+
+                if (allValid) {
+                    currentLevel.shapeName = template.name;
+                    currentLevel.vertices = candidateVertices;
+                    currentLevel.reflectedVertices = candidateReflected;
+                    validPlacement = true;
+                }
+            }
+
+            updateHUDForVertex();
+            draw();
+        }
+
+        function spawnFloatingText(logX, logY, text) {
+            const pos = logicalToScreen(logX, logY);
+            floatingTexts.push({ x: pos.x, y: pos.y - 10, text, alpha: 1.0 });
+
+            const interval = setInterval(() => {
+                let active = false;
+                floatingTexts.forEach(ft => {
+                    ft.y -= 1.5;
+                    ft.alpha -= 0.04;
+                    if (ft.alpha > 0) active = true;
+                });
+                floatingTexts = floatingTexts.filter(ft => ft.alpha > 0);
+                draw();
+                if (!active) clearInterval(interval);
+            }, 25);
+        }
+
+        function advanceToNextVertex(awardPoints = true) {
+            if (currentLevel.isCompletedAnimating) return;
+
+            const idx = currentLevel.currentVertexIndex;
+            const correct = currentLevel.reflectedVertices[idx];
+
+            hintBox.classList.add('hidden');
+            currentLevel.wrongClick = null;
+            currentLevel.showingSolutionForVertex = false;
+
+            if (awardPoints) {
+                let earned = currentLevel.attemptsOnCurrent === 0 ? 15 : 8;
+                if (currentLevel.attemptsOnCurrent === 0) streak++;
+                points += earned + Math.min(streak * 2, 20);
+                pointsDisplay.textContent = points;
+                if (correct) spawnFloatingText(correct.x, correct.y, `+${earned} pts`);
+            } else {
+                streak = 0;
+                if (correct) spawnFloatingText(correct.x, correct.y, `Paso guiado`);
+            }
+
+            currentLevel.currentVertexIndex++;
+            currentLevel.attemptsOnCurrent = 0;
+
+            if (currentLevel.currentVertexIndex >= currentLevel.vertices.length) {
+                completeCurrentShape();
+            } else {
+                playVertexSuccessSound(currentLevel.currentVertexIndex - 1);
+                updateHUDForVertex();
+                draw();
+            }
+        }
+
+        function buildHintMessage(orig, correct) {
+            const line = currentLevel.reflectionLine;
+            if (line.axis === 'x' || line.axis === 'y') {
+                const distToLine = line.axis === 'x'
+                    ? Math.abs(orig.x - line.value)
+                    : Math.abs(orig.y - line.value);
+                const directionText = line.axis === 'x' ? 'horizontalmente' : 'verticalmente';
+                return `El vértice <b>${orig.label}(${orig.x}, ${orig.y})</b> está a <b>${distToLine} cuadros</b> del eje rojo. Cuenta <b>${distToLine} cuadros</b> ${directionText} al otro lado.`;
+            } else {
+                return `Usa la <b>línea azul celeste punteada</b> como guía. Cuenta los puntos celestes desde <b>${orig.label}</b> hasta el eje rojo, y avanza esa misma cantidad hacia el lado contrario.`;
+            }
+        }
+
+        function checkAnswer(x, y) {
+            if (currentLevel.isCompletedAnimating) return;
+
+            const idx = currentLevel.currentVertexIndex;
+            const correct = currentLevel.reflectedVertices[idx];
+            const orig = currentLevel.vertices[idx];
+            if (!correct || !orig) return;
+            
+            if (x === correct.x && y === correct.y) {
+                // Correct placement!
+                advanceToNextVertex(!currentLevel.showingSolutionForVertex);
+            } else {
+                // Incorrect attempt
+                playErrorSound();
+                currentLevel.attemptsOnCurrent++;
+                currentLevel.wrongClick = { x, y };
+                streak = 0;
+                updateHUDForVertex();
+                
+                hintBox.classList.remove('hidden');
+
+                if (currentLevel.attemptsOnCurrent === 1) {
+                    // First wrong attempt: show hint and allow 2nd try
+                    hintTitle.innerHTML = `💡 ¡Pista! (Te queda 1 intento)`;
+                    hintText.innerHTML = buildHintMessage(orig, correct);
+                } else {
+                    // Second wrong attempt: reveal exact position on canvas and prompt to press "Siguiente Punto" or click the green point
+                    currentLevel.showingSolutionForVertex = true;
+                    hintTitle.innerHTML = `✅ Solución mostrada (2/2 intentos usados)`;
+                    hintText.innerHTML = `El reflejo correcto es <b>${correct.label}(${correct.x}, ${correct.y})</b> (marcado en verde). Tócalo o presiona el botón <b>"⏭️ Siguiente Punto"</b> para continuar.`;
+                }
+                
+                draw();
+            }
+        }
+
+        function completeCurrentShape() {
+            currentLevel.isCompletedAnimating = true;
+            completedShapes++;
+            shapesDisplay.textContent = completedShapes;
+            points += 50;
+            pointsDisplay.textContent = points;
+
+            playShapeCompleteFanfare();
+            updateHUDForVertex();
+
+            let fillStep = 0;
+            const fillInterval = setInterval(() => {
+                fillStep++;
+                currentLevel.fillAlpha = Math.min(0.38, fillStep * 0.04);
+                draw();
+                if (fillStep >= 10) clearInterval(fillInterval);
+            }, 30);
+
+            if (completedShapes === obliqueUnlockThreshold) {
+                successBannerText.textContent = `¡20 Figuras! ¡Desbloqueaste Ejes Oblicuos! 🔥`;
+            } else {
+                successBannerText.textContent = `¡${currentLevel.shapeName} Reflejado! +50 pts`;
+            }
+
+            successAnim.classList.remove('hidden', 'star-anim');
+            void successAnim.offsetWidth;
+            successAnim.classList.add('star-anim');
+
+            if (completedShapes >= totalShapesGoal) {
+                setTimeout(endGame, 2400);
+            } else {
+                setTimeout(() => {
+                    successAnim.classList.add('hidden');
+                    generateLevel();
+                }, 2200);
+            }
+        }
+
+        // Next / Skip Buttons Event Listeners
+        nextVertexBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (currentLevel.isCompletedAnimating) return;
+            advanceToNextVertex(false);
+        });
+
+        nextShapeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (currentLevel.isCompletedAnimating) return;
+            generateLevel();
+        });
+
+        // Mouse & Touch Event Listeners
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mousePos = {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+            draw();
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            mousePos = { x: null, y: null };
+            draw();
+        });
+
+        canvas.addEventListener('click', (e) => {
+            if (currentLevel.isCompletedAnimating) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+            
+            const logical = screenToLogical(clickX, clickY);
+            if (logical.x < gridMin || logical.x > gridMax || logical.y < gridMin || logical.y > gridMax) return;
+
+            checkAnswer(logical.x, logical.y);
+        });
+
+        function startGame() {
+            initAudio();
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            }
+            
+            completedShapes = 0;
+            points = 0;
+            streak = 0;
+            shapesDisplay.textContent = completedShapes;
+            pointsDisplay.textContent = points;
+
+            startScreen.style.display = 'none';
+            gameContainer.style.display = 'block';
+            gameOverScreen.classList.add('hidden');
+            gameOverScreen.style.display = 'none';
+
+            resizeCanvas();
+            generateLevel();
+        }
+
+        function endGame() {
+            gameContainer.style.display = 'none';
+            finalPointsDisplay.textContent = `${points} ⭐`;
+            gameOverScreen.classList.remove('hidden');
+            gameOverScreen.style.display = 'flex';
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => {});
+            }
+        }
+
+        document.getElementById('start-btn').addEventListener('click', startGame);
+        
+        // Nuevo evento para iniciar directamente en la fase oblicua
+        document.getElementById('start-oblique-btn').addEventListener('click', () => {
+            completedShapes = 20; // Saltar las figuras ortogonales
+            startGame();
+        });
+        
+        document.getElementById('restart-btn').addEventListener('click', startGame);
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (currentLevel.isCompletedAnimating) return;
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const clickX = touch.clientX - rect.left;
+            const clickY = touch.clientY - rect.top;
+            
+            const logical = screenToLogical(clickX, clickY);
+            if (logical.x >= gridMin && logical.x <= gridMax && logical.y >= gridMin && logical.y <= gridMax) {
+                checkAnswer(logical.x, logical.y);
+            }
+        }, {passive: false});
+        
+    </script>
+</body>
+</html>
