@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador Examen IGCSE 0580 - Nivel Extended</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- MathJax for rendering math formulas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .canvas-container { cursor: crosshair; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans h-screen overflow-hidden flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-blue-900 text-white p-4 shadow-md flex justify-between items-center z-10 shrink-0">
+        <div>
+            <h1 class="text-xl font-bold">IGCSE Math 0580 Simulator (Extended)</h1>
+            <p class="text-blue-200 text-sm">Entrenamiento Guiado Paso a Paso</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="text-right">
+                <p class="text-sm font-semibold">Puntaje Total Acumulado</p>
+                <p class="text-2xl font-bold text-emerald-400" id="global-score">0 / 11</p>
+            </div>
+            <button onclick="finalizarExamen()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg">
+                Finalizar
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 flex overflow-hidden">
+        
+        <!-- LEFT PANEL: Questions & Steps (Scrollable) -->
+        <div class="w-2/3 h-full overflow-y-auto p-6 bg-white shadow-inner" id="questions-container">
+            <!-- Questions will be injected here by JS -->
+        </div>
+
+        <!-- RIGHT PANEL: Tools (Fixed/Sticky) -->
+        <div class="w-1/3 h-full bg-slate-100 border-l border-slate-300 p-4 flex flex-col gap-4 overflow-y-auto shrink-0 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)]">
+            
+            <!-- Tool 1: Timer -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wide mb-1">Temporizador</h2>
+                <div class="text-4xl font-mono font-bold text-slate-800" id="timer-display">50:00</div>
+                <div class="mt-3 flex justify-center gap-2">
+                    <button id="btn-timer-toggle" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-1.5 px-4 rounded-md transition-colors">
+                        Pausar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tool 2: Formula Button -->
+            <button onclick="toggleModal('formula-modal')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                Ver Fórmulas IGCSE
+            </button>
+
+            <!-- Tool 3: Calculator -->
+            <div class="bg-slate-800 p-4 rounded-xl shadow-sm">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wide">Calculadora Básica</h2>
+                </div>
+                <div class="bg-emerald-100 rounded p-2 text-right font-mono text-xl text-emerald-900 mb-3 h-10 overflow-hidden" id="calc-display">0</div>
+                <div class="grid grid-cols-4 gap-2">
+                    <button class="calc-btn bg-slate-600 text-white rounded p-2 font-bold hover:bg-slate-500" data-val="7">7</button>
+                    <button class="calc-btn bg-slate-600 text-white rounded p-2 font-bold hover:bg-slate-500" data-val="8">8</button>
+                    <button class="calc-btn bg-slate-600 text-white rounded p-2 font-bold hover:bg-slate-500" data-val="9">9</button>
+                    <button class="calc-btn bg-amber-500 text-white rounded p-2 font-bold hover:bg-amber-400" data-val="/">÷</button>
+                    
+                    <button class="calc-btn bg-slate-600 text-white rounded p-2 font-bold hover:bg-slate-500" data-val="4">4</button>
+                    <button class="calc-btn bg-slate-600 text-white rounded p-2 font-bold hover:bg-slate-500" data-val="5">5</button>
+                    <button class="calc-btn bg-slate-600 text-white rounded p-2 font-bold hover:bg-slate-500" data-val="6">6</button>
+                    <button class="calc-btn bg-amber-500 text-white rounded p-2 font-bold hover:bg-amber-400" data-val="*">×</button>
+                    
+                    <button class="calc-btn bg-slate-600 text-white rounded p-2 font-bold hover:bg-slate-500" data-val="1">1</button>
+                    <button class="calc-btn bg-slate-600 text-white rounded p-2 font-bold hover:bg-slate-500" data-val="2">2</button>
+                    <button class="calc-btn bg-slate-600 text-white rounded p-2 font-bold hover:bg-slate-500" data-val="3">3</button>
+                    <button class="calc-btn bg-amber-500 text-white rounded p-2 font-bold hover:bg-amber-400" data-val="-">-</button>
+                    
+                    <button class="calc-btn bg-red-500 text-white rounded p-2 font-bold hover:bg-red-400" data-val="C">C</button>
+                    <button class="calc-btn bg-slate-600 text-white rounded p-2 font-bold hover:bg-slate-500" data-val="0">0</button>
+                    <button class="calc-btn bg-slate-600 text-white rounded p-2 font-bold hover:bg-slate-500" data-val=".">.</button>
+                    <button class="calc-btn bg-amber-500 text-white rounded p-2 font-bold hover:bg-amber-400" data-val="+">+</button>
+                    
+                    <button class="calc-btn col-span-4 bg-emerald-500 text-white rounded p-2 font-bold hover:bg-emerald-400" data-val="=">=</button>
+                </div>
+            </div>
+
+            <!-- Tool 4: Scratchpad (Pizarra) -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex-1 flex flex-col min-h-[250px]">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wide">Pizarra de Trabajo</h2>
+                    <button id="clear-canvas" class="text-xs text-red-500 hover:text-red-700 font-semibold">Limpiar</button>
+                </div>
+                <div class="flex-1 border border-slate-300 rounded bg-slate-50 canvas-container relative">
+                    <canvas id="scratchpad" class="absolute top-0 left-0 w-full h-full rounded"></canvas>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-1 text-center">Usa tu mouse para dibujar o escribir cálculos rápidos.</p>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Modal Formulas -->
+    <div id="formula-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h2 class="text-xl font-bold text-blue-900">Formulario IGCSE (Página 2)</h2>
+                <button onclick="toggleModal('formula-modal')" class="text-slate-500 hover:text-slate-800 text-xl font-bold">&times;</button>
+            </div>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div class="bg-slate-50 p-3 rounded border">
+                    <h3 class="font-bold text-indigo-700 mb-2">Ecuación Cuadrática</h3>
+                    <p>Si \(ax^2 + bx + c = 0\), entonces:</p>
+                    <p class="text-center mt-2 text-lg">\(x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}\)</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded border">
+                    <h3 class="font-bold text-indigo-700 mb-2">Mensuración (Sólidos)</h3>
+                    <ul class="list-disc pl-4 space-y-1">
+                        <li>Volumen Cono: \(V = \frac{1}{3}\pi r^2 h\)</li>
+                        <li>Área Superficie Cono: \(A = \pi r l\)</li>
+                        <li>Volumen Esfera: \(V = \frac{4}{3}\pi r^3\)</li>
+                        <li>Área Superficie Esfera: \(A = 4\pi r^2\)</li>
+                    </ul>
+                </div>
+                <div class="bg-slate-50 p-3 rounded border col-span-2">
+                    <h3 class="font-bold text-indigo-700 mb-2">Trigonometría</h3>
+                    <p>Ley de Senos: \(\frac{a}{\sin A} = \frac{b}{\sin B} = \frac{c}{\sin C}\)</p>
+                    <p>Ley de Cosenos: \(a^2 = b^2 + c^2 - 2bc \cos A\)</p>
+                    <p>Área de un triángulo = \(\frac{1}{2}ab \sin C\)</p>
+                </div>
+            </div>
+            <div class="mt-4 text-right">
+                <button onclick="toggleModal('formula-modal')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Resumen Final -->
+    <div id="summary-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 text-center">
+            <h2 class="text-3xl font-bold text-blue-900 mb-2">¡Entrenamiento Finalizado!</h2>
+            <p class="text-slate-600 mb-6">Este es el resumen de tu desempeño evaluando los pasos intermedios (M, A, B marks).</p>
+            
+            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-6 mb-6">
+                <p class="text-sm font-bold text-emerald-800 uppercase tracking-wide">Puntaje Total Obtenido</p>
+                <p class="text-6xl font-black text-emerald-600 mt-2" id="final-score-display">0 / 11</p>
+            </div>
+            
+            <p class="text-sm text-slate-500 mb-6">Sigue practicando. Recuerda que en IGCSE, mostrar el procedimiento correcto te garantiza los puntos de método (M marks) incluso si hay un error de cálculo al final.</p>
+            
+            <button onclick="location.reload()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg w-full">
+                Reiniciar Simulador
+            </button>
+        </div>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        // --- 1. DATA: Questions & Steps ---
+        const examQuestions = [
+            {
+                id: 1,
+                topic: "Ecuaciones Fraccionarias y Cuadráticas",
+                englishText: "Ahmed walks 2 km at a speed of \\(x\\) km/h. He then walks a further 3 km at a speed of \\((x + 1)\\) km/h. The total time he takes to walk the 5 km is 1.25 hours.",
+                steps: [
+                    {
+                        stepNum: 1,
+                        instruction: "Escribe la ecuación inicial sumando los tiempos. (Pista: usa el formato de fracción con el símbolo '/' y no uses espacios antes/después del igual si es posible).",
+                        hint: "Tip IGCSE: El tiempo es Distancia / Velocidad. Suma las dos fracciones de tiempo e iguala al tiempo total.",
+                        points: 1,
+                        validate: (ans) => {
+                            let clean = ans.replace(/\s+/g, '');
+                            return clean === "2/x+3/(x+1)=1.25" || clean === "3/(x+1)+2/x=1.25" || clean === "2/x+3/(x+1)=5/4" || clean === "3/(x+1)+2/x=5/4";
+                        }
+                    },
+                    {
+                        stepNum: 2,
+                        instruction: "La ecuación simplificada es \\(5x^2 - 15x - 8 = 0\\). Calcula el valor del discriminante (\\(b^2 - 4ac\\)).",
+                        hint: "Tip IGCSE: b es -15, al elevarlo al cuadrado queda positivo (225). Ten cuidado con los signos al multiplicar -4 * 5 * -8.",
+                        points: 1,
+                        validate: (ans) => ans.trim() === "385"
+                    },
+                    {
+                        stepNum: 3,
+                        instruction: "Encuentra el valor positivo de \\(x\\) (redondeado a 2 cifras decimales).",
+                        hint: "Tip IGCSE: Cambridge exige 2 cifras decimales exactas para resultados inexactos a menos que se indique lo contrario. Usa la fórmula cuadrática: (15 + √385) / 10 y redondea correctamente.",
+                        points: 1,
+                        validate: (ans) => ans.trim() === "3.46"
+                    }
+                ]
+            },
+            {
+                id: 2,
+                topic: "Geometría de Coordenadas",
+                englishText: "P is the point (8, 0) and Q is the point (20, 6). Find the equation of the perpendicular bisector of PQ.",
+                steps: [
+                    {
+                        stepNum: 1,
+                        instruction: "Encuentra las coordenadas del punto medio de PQ. (Escríbelo como x,y o (x,y)).",
+                        hint: "Tip IGCSE: El punto medio es el promedio de las coordenadas x y el promedio de las coordenadas y.",
+                        points: 1,
+                        validate: (ans) => {
+                            let clean = ans.replace(/\s+/g, '');
+                            return clean === "14,3" || clean === "(14,3)";
+                        }
+                    },
+                    {
+                        stepNum: 2,
+                        instruction: "Calcula la pendiente (gradient) de la recta PQ.",
+                        hint: "Tip IGCSE: La pendiente es (y2 - y1) / (x2 - x1).",
+                        points: 1,
+                        validate: (ans) => {
+                            let clean = ans.replace(/\s+/g, '');
+                            return clean === "1/2" || clean === "0.5" || clean === "6/12";
+                        }
+                    },
+                    {
+                        stepNum: 3,
+                        instruction: "Escribe la pendiente perpendicular.",
+                        hint: "Tip IGCSE: La pendiente perpendicular m2 cumple que m1 * m2 = -1. Es el recíproco negativo de la pendiente original.",
+                        points: 1,
+                        validate: (ans) => ans.trim() === "-2"
+                    },
+                    {
+                        stepNum: 4,
+                        instruction: "Escribe la ecuación final de la bisectriz perpendicular en la forma \\(y = mx + c\\).",
+                        hint: "Tip IGCSE: Reemplaza la pendiente perpendicular y el punto medio en la ecuación y = mx + c para hallar c.",
+                        points: 1,
+                        validate: (ans) => {
+                            let clean = ans.replace(/\s+/g, '').toLowerCase();
+                            return clean === "y=-2x+31" || clean === "y=31-2x" || clean === "-2x+31";
+                        }
+                    }
+                ]
+            },
+            {
+                id: 3,
+                topic: "Secuencias y Patrones",
+                englishText: "These are the first 4 terms of a sequence: 11, 8, 5, 2. Find the nth term of this sequence.",
+                steps: [
+                    {
+                        stepNum: 1,
+                        instruction: "Encuentra la diferencia común entre los términos consecutivos.",
+                        hint: "Tip IGCSE: Resta un término de su anterior (ej. 8 - 11). Ten cuidado con el signo.",
+                        points: 1,
+                        validate: (ans) => ans.trim() === "-3"
+                    },
+                    {
+                        stepNum: 2,
+                        instruction: "Escribe la regla general del término enésimo (nth term).",
+                        hint: "Tip IGCSE: Usa la forma dn + c. Si baja de 3 en 3, la regla empieza con -3n. Evalúa con n=1 y mira qué valor debes sumar o restar para obtener el primer término (11).",
+                        points: 1,
+                        validate: (ans) => {
+                            let clean = ans.replace(/\s+/g, '').toLowerCase();
+                            return clean === "-3n+14" || clean === "14-3n";
+                        }
+                    }
+                ]
+            },
+            {
+                id: 4,
+                topic: "Mensuración (Volumen y Densidad)",
+                englishText: "A solid wooden cone has base radius 4 cm and height 12 cm. The density of the wood is 0.74 g/cm³. Calculate the mass of the cone.",
+                steps: [
+                    {
+                        stepNum: 1,
+                        instruction: "Calcula el volumen exacto o con decimales del cono. (Usa pi=3.14159, redondea a 1 cifra decimal si es numérico o escribe en términos de pi, ej: 64pi).",
+                        hint: "Tip IGCSE: El volumen de un cono es (1/3) * pi * r² * h. No confundas con el volumen del cilindro.",
+                        points: 1,
+                        validate: (ans) => {
+                            let clean = ans.replace(/\s+/g, '').toLowerCase();
+                            return clean === "201.1" || clean === "64pi" || clean === "201.06" || clean === "201";
+                        }
+                    },
+                    {
+                        stepNum: 2,
+                        instruction: "Calcula la masa final. Redondea tu respuesta al número entero más cercano.",
+                        hint: "Tip IGCSE: La fórmula es Masa = Densidad * Volumen. Multiplica el volumen por 0.74.",
+                        points: 1,
+                        validate: (ans) => ans.trim() === "149"
+                    }
+                ]
+            }
+        ];
+
+        let totalScore = 0;
+
+        // --- 2. RENDER QUESTIONS ---
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            let html = '';
+
+            examQuestions.forEach((q, qIndex) => {
+                html += `
+                <div class="mb-10 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" id="question-${q.id}">
+                    <!-- Question Header -->
+                    <div class="bg-blue-50 border-b border-blue-100 p-4">
+                        <div class="text-xs font-bold text-blue-500 uppercase tracking-widest mb-1">${q.topic}</div>
+                        <div class="text-lg text-slate-800 font-serif leading-relaxed">${q.englishText}</div>
+                    </div>
+                    
+                    <!-- Steps Container -->
+                    <div class="p-5 flex flex-col gap-4">
+                `;
+
+                q.steps.forEach((step, sIndex) => {
+                    const stepId = `q${q.id}_s${step.stepNum}`;
+                    const isFirstStep = sIndex === 0;
+                    
+                    html += `
+                    <div id="container_${stepId}" class="step-container p-4 rounded-lg border ${isFirstStep ? 'border-blue-200 bg-blue-50/30' : 'border-slate-200 bg-slate-50 opacity-50 pointer-events-none'} transition-all duration-300">
+                        <div class="flex items-start gap-3">
+                            <div class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">${step.stepNum}</div>
+                            <div class="flex-1">
+                                <p class="text-sm text-slate-700 font-semibold mb-2">${step.instruction}</p>
+                                
+                                <div class="flex gap-2 mb-2">
+                                    <input type="text" id="input_${stepId}" class="flex-1 border border-slate-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono" placeholder="Tu respuesta...">
+                                    <button onclick="checkAnswer(${qIndex}, ${sIndex})" id="btn_${stepId}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-4 rounded text-sm transition-colors">
+                                        Verificar
+                                    </button>
+                                </div>
+                                
+                                <div id="feedback_${stepId}" class="hidden text-sm mt-2 rounded p-3 fade-in"></div>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                });
+
+                html += `
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+            // Tell MathJax to typeset the newly added math elements
+            if(window.MathJax) { MathJax.typesetPromise(); }
+        }
+
+        // --- 3. CHECK ANSWER LOGIC ---
+        function checkAnswer(qIndex, sIndex) {
+            const q = examQuestions[qIndex];
+            const step = q.steps[sIndex];
+            const stepId = `q${q.id}_s${step.stepNum}`;
+            
+            const inputEl = document.getElementById(`input_${stepId}`);
+            const btnEl = document.getElementById(`btn_${stepId}`);
+            const feedbackEl = document.getElementById(`feedback_${stepId}`);
+            const containerEl = document.getElementById(`container_${stepId}`);
+            
+            const userAnswer = inputEl.value;
+
+            if (step.validate(userAnswer)) {
+                // Correct
+                feedbackEl.innerHTML = `<span class="flex items-center gap-1 font-bold"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> ¡Correcto! [+${step.points} punto]</span>`;
+                feedbackEl.className = "text-sm mt-2 rounded p-3 fade-in bg-emerald-100 text-emerald-800 border border-emerald-200";
+                
+                // Disable current input
+                inputEl.disabled = true;
+                inputEl.classList.add('bg-slate-100', 'text-slate-500');
+                btnEl.classList.add('hidden');
+                
+                // Update score
+                totalScore += step.points;
+                document.getElementById('global-score').innerText = `${totalScore} / 11`;
+
+                // Unlock next step if exists
+                if (sIndex + 1 < q.steps.length) {
+                    const nextStepId = `q${q.id}_s${q.steps[sIndex+1].stepNum}`;
+                    const nextContainer = document.getElementById(`container_${nextStepId}`);
+                    nextContainer.classList.remove('opacity-50', 'pointer-events-none', 'bg-slate-50', 'border-slate-200');
+                    nextContainer.classList.add('border-blue-200', 'bg-blue-50/30');
+                    // Focus next input automatically
+                    document.getElementById(`input_${nextStepId}`).focus();
+                }
+
+            } else {
+                // Incorrect
+                feedbackEl.innerHTML = `<strong>Respuesta incorrecta.</strong><br/>${step.hint}`;
+                feedbackEl.className = "text-sm mt-2 rounded p-3 fade-in bg-red-50 text-red-800 border border-red-200";
+            }
+        }
+
+        // --- 4. TIMER LOGIC ---
+        let timeRemaining = 50 * 60; // 50 minutes
+        let timerInterval;
+        let isRunning = true;
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            document.getElementById('timer-display').innerText = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (timeRemaining > 0) {
+                    timeRemaining--;
+                    updateTimerDisplay();
+                } else {
+                    clearInterval(timerInterval);
+                    alert("¡Se acabó el tiempo!");
+                }
+            }, 1000);
+        }
+
+        document.getElementById('btn-timer-toggle').addEventListener('click', function() {
+            if (isRunning) {
+                clearInterval(timerInterval);
+                this.innerText = "Reanudar";
+                this.classList.replace('bg-blue-600', 'bg-emerald-500');
+                this.classList.replace('hover:bg-blue-700', 'hover:bg-emerald-600');
+            } else {
+                startTimer();
+                this.innerText = "Pausar";
+                this.classList.replace('bg-emerald-500', 'bg-blue-600');
+                this.classList.replace('hover:bg-emerald-600', 'hover:bg-blue-700');
+            }
+            isRunning = !isRunning;
+        });
+
+        // --- 5. CALCULATOR LOGIC ---
+        let calcExpr = "";
+        const calcDisplay = document.getElementById('calc-display');
+        document.querySelectorAll('.calc-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const val = e.target.getAttribute('data-val');
+                if (val === 'C') {
+                    calcExpr = "";
+                    calcDisplay.innerText = "0";
+                } else if (val === '=') {
+                    try {
+                        let result = eval(calcExpr);
+                        // format to avoid long decimals
+                        result = Math.round(result * 1000000) / 1000000;
+                        calcExpr = result.toString();
+                        calcDisplay.innerText = calcExpr;
+                    } catch (err) {
+                        calcDisplay.innerText = "Error";
+                        calcExpr = "";
+                    }
+                } else {
+                    calcExpr += val;
+                    calcDisplay.innerText = calcExpr;
+                }
+            });
+        });
+
+        // --- 6. SCRATCHPAD (CANVAS) LOGIC ---
+        const canvas = document.getElementById('scratchpad');
+        const ctx = canvas.getContext('2d');
+        let painting = false;
+
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            // Set styles after resize to keep them active
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#1e293b'; // slate-800
+        }
+
+        function startPosition(e) {
+            painting = true;
+            draw(e);
+        }
+
+        function endPosition() {
+            painting = false;
+            ctx.beginPath();
+        }
+
+        function draw(e) {
+            if (!painting) return;
+            
+            // Get coordinates relative to the canvas
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        canvas.addEventListener('mousedown', startPosition);
+        canvas.addEventListener('mouseup', endPosition);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseleave', endPosition);
+
+        document.getElementById('clear-canvas').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        // Handle window resize for canvas
+        window.addEventListener('resize', () => {
+            // Save current content, resize, and restore (optional, keeping it simple here)
+            resizeCanvas();
+        });
+
+        // --- 7. MODAL LOGIC ---
+        function toggleModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.toggle('hidden');
+        }
+
+        function finalizarExamen() {
+            document.getElementById('final-score-display').innerText = `${totalScore} / 11`;
+            toggleModal('summary-modal');
+            clearInterval(timerInterval);
+        }
+
+        // --- INIT ---
+        window.onload = () => {
+            renderQuestions();
+            updateTimerDisplay();
+            startTimer();
+            // Allow layout to settle before resizing canvas
+            setTimeout(resizeCanvas, 100); 
+        };
+
+    </script>
+</body>
+</html>
