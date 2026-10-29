@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprendo con Alejo - IGCSE Math Mixed Review</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; }
+        .split-screen { display: flex; height: 100vh; overflow: hidden; }
+        .left-pane { width: 70%; padding: 2rem; overflow-y: auto; background: white; box-shadow: 2px 0 5px rgba(0,0,0,0.1); z-index: 10; position: relative; }
+        .right-pane { width: 30%; padding: 1.5rem; background: #1e293b; color: white; display: flex; flex-direction: column; gap: 1.5rem; overflow-y: auto; }
+        
+        /* Question Containers */
+        .question-container { display: none; margin-bottom: 4rem; animation: fadeIn 0.3s; }
+        .question-container.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem; }
+        .option-btn { 
+            padding: 1rem; 
+            border: 2px solid #e2e8f0; 
+            border-radius: 0.5rem; 
+            background: white; 
+            text-align: left; 
+            cursor: pointer; 
+            transition: all 0.2s;
+            font-size: 1.1rem;
+        }
+        .option-btn:hover { border-color: #3b82f6; background-color: #eff6ff; }
+        .option-btn.selected { border-color: #3b82f6; background-color: #eff6ff; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3); }
+        
+        .feedback { display: none; margin-top: 1.5rem; padding: 1rem; border-radius: 0.5rem; font-size: 1rem; }
+        .feedback.error { background-color: #fef2f2; color: #991b1b; border: 1px solid #f87171; display: block; }
+        .feedback.success { background-color: #f0fdf4; color: #166534; border: 1px solid #4ade80; display: block; }
+        .feedback.final-error { background-color: #fef2f2; color: #7f1d1d; border: 1px solid #dc2626; display: block; font-weight: bold; }
+
+        .tool-panel { background: #334155; padding: 1.5rem; border-radius: 0.5rem; }
+        
+        /* Navigation Controls */
+        .nav-controls {
+            position: absolute;
+            bottom: 1rem;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-top: 1px solid #e5e7eb;
+        }
+        .nav-btn {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 0.5rem 1.5rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #475569;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .nav-btn:hover:not(:disabled) { background: #e2e8f0; color: #1e293b; border-color: #94a3b8; }
+        .nav-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* Calculator */
+        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-top: 1rem; }
+        .calc-btn { background: #475569; border: none; padding: 0.75rem; border-radius: 0.25rem; color: white; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .calc-btn:hover { background: #64748b; }
+        .calc-btn.op { background: #f59e0b; color: #fff; }
+        .calc-btn.op:hover { background: #d97706; }
+        .calc-display { background: #0f172a; padding: 1rem; border-radius: 0.25rem; font-family: monospace; text-align: right; font-size: 1.5rem; color: #10b981; overflow-x: auto; }
+    </style>
+</head>
+<body>
+
+<div class="split-screen">
+    <!-- Panel Izquierdo: Preguntas -->
+    <div class="left-pane">
+        <div class="flex justify-between items-center mb-6 border-b pb-4">
+            <h1 class="text-2xl font-bold text-gray-800">Aprendo con Alejo: IGCSE Mixed Review</h1>
+            <span class="bg-indigo-100 text-indigo-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">All Topics - Adaptive</span>
+        </div>
+
+        <div id="quiz-container">
+            <!-- Las preguntas se inyectarán aquí vía JS -->
+        </div>
+
+        <!-- Controles de Navegación -->
+        <div class="nav-controls">
+            <button id="prevBtn" class="nav-btn" onclick="changeQuestion(-1)" disabled>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                Previous
+            </button>
+            <span id="questionCounter" class="flex items-center font-semibold text-gray-600">Q 1 / 10</span>
+            <button id="nextBtn" class="nav-btn" onclick="changeQuestion(1)">
+                Next
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Panel Derecho: Herramientas -->
+    <div class="right-pane shadow-lg">
+        <!-- Timer -->
+        <div class="tool-panel text-center">
+            <h3 class="text-gray-300 text-sm font-semibold uppercase tracking-wider mb-2">Time Remaining</h3>
+            <div id="timer" class="text-4xl font-mono font-bold text-white mb-3">50:00</div>
+            <button onclick="toggleTimer()" id="timerBtn" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-1 px-4 rounded text-sm w-full transition-colors">Pause</button>
+        </div>
+
+        <!-- Fórmulas -->
+        <div class="tool-panel">
+            <h3 class="text-gray-300 text-sm font-semibold uppercase tracking-wider mb-3 border-b border-gray-600 pb-2">Formulas (Paper 2 & 4)</h3>
+            <ul class="text-sm space-y-3 font-mono text-gray-200">
+                <li>\(ax^2 + bx + c = 0 \implies x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}\)</li>
+                <li>Distance: \(d = \sqrt{(x_2-x_1)^2 + (y_2-y_1)^2}\)</li>
+                <li>Gradient: \(m = \frac{y_2-y_1}{x_2-x_1}\) ; \(m_1 m_2 = -1\)</li>
+                <li>Vol Cone: \(V = \frac{1}{3}\pi r^2 h\)</li>
+                <li>Vol Sphere: \(V = \frac{4}{3}\pi r^3\)</li>
+                <li>Area Sector: \(A = \frac{\theta}{360}\pi r^2\)</li>
+            </ul>
+        </div>
+
+        <!-- Calculadora Sencilla -->
+        <div class="tool-panel flex-grow">
+            <h3 class="text-gray-300 text-sm font-semibold uppercase tracking-wider mb-2 border-b border-gray-600 pb-2">Calculator</h3>
+            <div class="calc-display mb-2" id="calcDisplay">0</div>
+            <div class="calc-grid">
+                <button class="calc-btn op" onclick="calcAction('clear')">C</button>
+                <button class="calc-btn op" onclick="calcAction('back')">←</button>
+                <button class="calc-btn op" onclick="calcAction('%')">%</button>
+                <button class="calc-btn op" onclick="calcAction('/')">÷</button>
+                
+                <button class="calc-btn" onclick="calcAction('7')">7</button>
+                <button class="calc-btn" onclick="calcAction('8')">8</button>
+                <button class="calc-btn" onclick="calcAction('9')">9</button>
+                <button class="calc-btn op" onclick="calcAction('*')">×</button>
+                
+                <button class="calc-btn" onclick="calcAction('4')">4</button>
+                <button class="calc-btn" onclick="calcAction('5')">5</button>
+                <button class="calc-btn" onclick="calcAction('6')">6</button>
+                <button class="calc-btn op" onclick="calcAction('-')">-</button>
+                
+                <button class="calc-btn" onclick="calcAction('1')">1</button>
+                <button class="calc-btn" onclick="calcAction('2')">2</button>
+                <button class="calc-btn" onclick="calcAction('3')">3</button>
+                <button class="calc-btn op" onclick="calcAction('+')">+</button>
+                
+                <button class="calc-btn" onclick="calcAction('0')" style="grid-column: span 2;">0</button>
+                <button class="calc-btn" onclick="calcAction('.')">.</button>
+                <button class="calc-btn op" onclick="calcAction('=')">=</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Datos de Preguntas ---
+    const questionsData = [
+        // R1: Mensuration
+        {
+            topic: "Mensuration",
+            qText: "A solid wooden cone has base radius 4 cm and height 12 cm. The density of the wood is 0.74 g/cm³.<br><br>Calculate the mass of the cone.<br><br><em>[Density = Mass ÷ Volume]</em>",
+            options: [
+                { id: "A", text: "148.7 g", isCorrect: true },
+                { id: "B", text: "111.5 g", isCorrect: false },
+                { id: "C", text: "446.1 g", isCorrect: false },
+                { id: "D", text: "59.5 g", isCorrect: false }
+            ],
+            tip: "Recuerda que el volumen de un cono es \\( \\frac{1}{3}\\pi r^2 h \\). Asegúrate de calcular el volumen primero y luego multiplicarlo por la densidad.",
+            finalError: "¡0 puntos! El volumen es \\(\\frac{1}{3}\\pi(4^2)(12) \\approx 201.06\\) cm³. Masa = Densidad × Volumen = \\(0.74 \\times 201.06 = 148.7\\) g. Respuesta: A."
+        },
+        // R1: Algebra & Equations
+        {
+            topic: "Algebra & Equations",
+            qText: "Solve the equation: <br><br> \\(\\frac{2}{x} + \\frac{3}{x+1} = \\frac{5}{4}\\)<br><br>Which of the following is the correct quadratic equation in the form \\(ax^2 + bx + c = 0\\)?",
+            options: [
+                { id: "A", text: "\\(5x^2 - 15x - 8 = 0\\)", isCorrect: true },
+                { id: "B", text: "\\(5x^2 + 15x + 8 = 0\\)", isCorrect: false },
+                { id: "C", text: "\\(5x^2 - 12x - 8 = 0\\)", isCorrect: false },
+                { id: "D", text: "\\(4x^2 - 15x - 5 = 0\\)", isCorrect: false }
+            ],
+            tip: "Encuentra el denominador común que es \\(4x(x+1)\\). Multiplica toda la ecuación por ese término y ten cuidado con la expansión de los paréntesis.",
+            finalError: "¡Incorrecto! Al multiplicar por \\(4x(x+1)\\) obtienes \\(8(x+1) + 12x = 5x(x+1)\\), lo que simplifica a \\(5x^2 - 15x - 8 = 0\\). Respuesta: A."
+        },
+        // R1: Coordinate Geometry
+        {
+            topic: "Coordinate Geometry",
+            qText: "A is the point (3, -1) and B is the point (7, -9).<br><br>Find the exact length of the line segment AB.",
+            options: [
+                { id: "A", text: "\\(\\sqrt{80}\\) or \\(4\\sqrt{5}\\)", isCorrect: true },
+                { id: "B", text: "8", isCorrect: false },
+                { id: "C", text: "12", isCorrect: false },
+                { id: "D", text: "\\(\\sqrt{40}\\)", isCorrect: false }
+            ],
+            tip: "Utiliza la fórmula de distancia: \\(d = \\sqrt{(x_2-x_1)^2 + (y_2-y_1)^2}\\). Revisa los signos al restar las coordenadas \\(y\\): \\((-9) - (-1)\\).",
+            finalError: "Distancia = \\(\\sqrt{(7-3)^2 + (-9 - (-1))^2} = \\sqrt{4^2 + (-8)^2} = \\sqrt{16 + 64} = \\sqrt{80}\\). Respuesta: A."
+        },
+        // R1: Sequences
+        {
+            topic: "Sequences",
+            qText: "These are the first 4 terms of a sequence:<br><br>11 &nbsp;&nbsp; 8 &nbsp;&nbsp; 5 &nbsp;&nbsp; 2<br><br>Find the \\(n^{th}\\) term of this sequence.",
+            options: [
+                { id: "A", text: "\\(14 - 3n\\)", isCorrect: true },
+                { id: "B", text: "\\(3n + 8\\)", isCorrect: false },
+                { id: "C", text: "\\(11 - 3n\\)", isCorrect: false },
+                { id: "D", text: "\\(-3n + 15\\)", isCorrect: false }
+            ],
+            tip: "Nota que la secuencia disminuye en 3 cada vez, así que incluirá '\\(-3n\\)'. ¿Qué número debes sumar a \\(-3(1)\\) para obtener el primer término (11)?",
+            finalError: "La diferencia es -3. Para \\(n=1\\), \\(-3(1) + c = 11 \\implies c = 14\\). El término es \\(14 - 3n\\). Respuesta: A."
+        },
+        // R1: Transformations
+        {
+            topic: "Transformations",
+            qText: "Triangle T has vertices at (1, 1), (1, 3), and (2, 1). It is rotated 90° anti-clockwise about the origin (0,0) to form Triangle U.<br><br>What are the new coordinates of the vertex that was originally at (2, 1)?",
+            options: [
+                { id: "A", text: "(-1, 2)", isCorrect: true },
+                { id: "B", text: "(1, -2)", isCorrect: false },
+                { id: "C", text: "(-2, 1)", isCorrect: false },
+                { id: "D", text: "(-2, -1)", isCorrect: false }
+            ],
+            tip: "Una rotación de 90° en sentido antihorario sobre el origen transforma cualquier punto \\((x, y)\\) en \\((-y, x)\\).",
+            finalError: "Aplicando la regla \\((x,y) \\to (-y,x)\\) al punto \\((2,1)\\), obtenemos \\((-1,2)\\). Respuesta: A."
+        },
+        // R2: Mensuration (Dificultad Alta)
+        {
+            topic: "Mensuration",
+            qText: "A solid A and solid B are mathematically similar.<br>Solid A has height 7 cm and surface area 60 cm².<br>Solid B has surface area 540 cm².<br><br>Calculate the height of solid B.",
+            options: [
+                { id: "A", text: "21 cm", isCorrect: true },
+                { id: "B", text: "63 cm", isCorrect: false },
+                { id: "C", text: "14 cm", isCorrect: false },
+                { id: "D", text: "18.9 cm", isCorrect: false }
+            ],
+            tip: "Para sólidos similares, la razón de áreas es el cuadrado de la razón de longitudes: \\( \\frac{A_1}{A_2} = (\\frac{h_1}{h_2})^2 \\). Debes aplicar una raíz cuadrada a la razón de áreas.",
+            finalError: "Razón de áreas = 540 / 60 = 9. La razón de longitudes es \\(\\sqrt{9} = 3\\). Altura B = \\(7 \\times 3 = 21\\) cm. Respuesta: A."
+        },
+        // R2: Algebra & Equations (Dificultad Alta)
+        {
+            topic: "Algebra & Equations",
+            qText: "Make \\(t\\) the subject of the formula:<br><br>\\(2 = \\frac{m(1 - t)}{pt}\\)",
+            options: [
+                { id: "A", text: "\\(t = \\frac{m}{2p + m}\\)", isCorrect: true },
+                { id: "B", text: "\\(t = \\frac{m - 2p}{m}\\)", isCorrect: false },
+                { id: "C", text: "\\(t = \\frac{m}{2p - m}\\)", isCorrect: false },
+                { id: "D", text: "\\(t = \\frac{1}{2p + m}\\)", isCorrect: false }
+            ],
+            tip: "Paso 1: Multiplica por \\(pt\\) para deshacerte de la fracción. Paso 2: Expande el paréntesis. Paso 3: Agrupa todos los términos con \\(t\\) en un solo lado de la ecuación y factoriza.",
+            finalError: "\\(2pt = m - mt \\implies 2pt + mt = m \\implies t(2p + m) = m \\implies t = \\frac{m}{2p + m}\\). Respuesta: A."
+        },
+        // R2: Coordinate Geometry (Dificultad Alta)
+        {
+            topic: "Coordinate Geometry",
+            qText: "The line \\(y = 7x + 3\\) intersects the curve \\(y = x^2 + 5x - 12\\) at two points, A and B.<br><br>Find the x-coordinates of points A and B.",
+            options: [
+                { id: "A", text: "x = 5 and x = -3", isCorrect: true },
+                { id: "B", text: "x = -5 and x = 3", isCorrect: false },
+                { id: "C", text: "x = 4 and x = -2", isCorrect: false },
+                { id: "D", text: "x = 15 and x = -1", isCorrect: false }
+            ],
+            tip: "Iguala las dos ecuaciones: \\(7x + 3 = x^2 + 5x - 12\\). Reorganiza para formar una ecuación cuadrática igualada a 0 y factoriza.",
+            finalError: "Igualando: \\(x^2 - 2x - 15 = 0\\). Factorizando: \\((x - 5)(x + 3) = 0\\). Soluciones: x = 5, x = -3. Respuesta: A."
+        },
+        // R2: Sequences (Dificultad Alta)
+        {
+            topic: "Sequences",
+            qText: "Find the \\(n^{th}\\) term of this quadratic sequence:<br><br>5 &nbsp;&nbsp; 8 &nbsp;&nbsp; 13 &nbsp;&nbsp; 20 &nbsp;&nbsp; 29",
+            options: [
+                { id: "A", text: "\\(n^2 + 4\\)", isCorrect: true },
+                { id: "B", text: "\\(n^2 + 2n + 2\\)", isCorrect: false },
+                { id: "C", text: "\\(2n^2 + 3\\)", isCorrect: false },
+                { id: "D", text: "\\(n^2 + 5\\)", isCorrect: false }
+            ],
+            tip: "Encuentra la primera diferencia (3, 5, 7, 9) y la segunda diferencia (2, 2, 2). Recuerda que la mitad de la segunda diferencia es el coeficiente de \\(n^2\\).",
+            finalError: "Segunda diferencia constante es 2. Coeficiente de \\(n^2\\) es 2/2 = 1. La secuencia \\(n^2\\) es 1, 4, 9, 16... Para llegar a 5, 8, 13... sumas 4. Termino: \\(n^2 + 4\\). Respuesta: A."
+        },
+        // R2: Transformations (Dificultad Alta)
+        {
+            topic: "Transformations",
+            qText: "A shape is enlarged by scale factor -2 with centre of enlargement (0,0).<br>If a point on the original shape is (3, -4), what is the position of its image?",
+            options: [
+                { id: "A", text: "(-6, 8)", isCorrect: true },
+                { id: "B", text: "(6, -8)", isCorrect: false },
+                { id: "C", text: "(-1.5, 2)", isCorrect: false },
+                { id: "D", text: "(-3, 4)", isCorrect: false }
+            ],
+            tip: "Una ampliación con factor de escala negativo proyecta el punto a través del centro de ampliación hacia el lado opuesto. Multiplica ambas coordenadas por -2.",
+            finalError: "Para factor de escala -2 desde el origen, multiplicas las coordenadas por -2: \\(3 \\times -2 = -6\\) y \\(-4 \\times -2 = 8\\). Punto: (-6, 8). Respuesta: A."
+        }
+    ];
+
+    // Array para almacenar el estado de los intentos de cada pregunta
+    let attempts = Array(questionsData.length).fill(0);
+    let currentQuestionIndex = 0;
+
+    // --- Lógica de la interfaz ---
+    function initQuiz() {
+        const container = document.getElementById('quiz-container');
+        
+        questionsData.forEach((q, index) => {
+            const div = document.createElement('div');
+            div.className = `question-container ${index === 0 ? 'active' : ''}`;
+            div.id = `q-${index}`;
+            
+            // Reordenar opciones aleatoriamente para evitar que siempre sea la A
+            const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+            
+            let optionsHTML = '';
+            shuffledOptions.forEach(opt => {
+                optionsHTML += `<button id="btn-${index}-${opt.id}" class="option-btn" onclick="handleOptionClick(${index}, '${opt.id}', ${opt.isCorrect})">${opt.text}</button>`;
+            });
+
+            div.innerHTML = `
+                <div class="mb-2">
+                    <span class="text-sm font-bold text-gray-500 uppercase tracking-widest">${q.topic}</span>
+                </div>
+                <div class="text-xl text-gray-800 font-medium mb-6">
+                    ${q.qText}
+                </div>
+                <div class="options-grid">
+                    ${optionsHTML}
+                </div>
+                <div id="feedback-${index}" class="feedback"></div>
+            `;
+            container.appendChild(div);
+        });
+        
+        updateNav();
+        
+        // Render MathJax
+        if(window.MathJax) { MathJax.typeset(); }
+    }
+
+    function handleOptionClick(qIndex, optId, isCorrect) {
+        // Deshabilitar todos los botones si ya falló 2 veces o ya acertó
+        if(attempts[qIndex] >= 2) return;
+        
+        const feedback = document.getElementById(`feedback-${qIndex}`);
+        const buttons = document.querySelectorAll(`#q-${qIndex} .option-btn`);
+        
+        if (isCorrect) {
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                if(btn.id === `btn-${qIndex}-${optId}`) {
+                    btn.classList.add('selected');
+                    btn.style.borderColor = '#10b981';
+                    btn.style.backgroundColor = '#ecfdf5';
+                }
+            });
+            feedback.className = 'feedback success';
+            feedback.innerHTML = `<strong>¡Excelente!</strong> Respuesta correcta. ¡Suma los puntos!`;
+            attempts[qIndex] = 99; // Marcado como resuelto
+        } else {
+            attempts[qIndex]++;
+            const clickedBtn = document.getElementById(`btn-${qIndex}-${optId}`);
+            clickedBtn.style.borderColor = '#ef4444';
+            clickedBtn.style.backgroundColor = '#fef2f2';
+            clickedBtn.disabled = true;
+
+            if (attempts[qIndex] === 1) {
+                // Primer error: Mostrar tip en español
+                feedback.className = 'feedback error';
+                feedback.innerHTML = `<strong>Tip:</strong> ${questionsData[qIndex].tip}`;
+            } else if (attempts[qIndex] >= 2) {
+                // Segundo error: Mostrar solución y deshabilitar opciones
+                buttons.forEach(btn => btn.disabled = true);
+                feedback.className = 'feedback final-error';
+                feedback.innerHTML = `${questionsData[qIndex].finalError}`;
+            }
+        }
+        
+        if(window.MathJax) { MathJax.typesetPromise([feedback]); }
+    }
+
+    function changeQuestion(dir) {
+        document.getElementById(`q-${currentQuestionIndex}`).classList.remove('active');
+        currentQuestionIndex += dir;
+        document.getElementById(`q-${currentQuestionIndex}`).classList.add('active');
+        updateNav();
+    }
+
+    function updateNav() {
+        document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
+        document.getElementById('nextBtn').disabled = currentQuestionIndex === questionsData.length - 1;
+        document.getElementById('questionCounter').innerText = `Q ${currentQuestionIndex + 1} / ${questionsData.length}`;
+    }
+
+    // --- Lógica del Temporizador ---
+    let time = 3000; // 50 mins
+    let isRunning = true;
+    let timerInterval;
+
+    function updateTimer() {
+        if (!isRunning) return;
+        if (time <= 0) { clearInterval(timerInterval); alert("¡Tiempo agotado!"); return; }
+        time--;
+        const mins = Math.floor(time / 60).toString().padStart(2, '0');
+        const secs = (time % 60).toString().padStart(2, '0');
+        document.getElementById('timer').innerText = `${mins}:${secs}`;
+    }
+    
+    function toggleTimer() {
+        isRunning = !isRunning;
+        document.getElementById('timerBtn').innerText = isRunning ? "Resume" : "Pause";
+        document.getElementById('timerBtn').className = isRunning 
+            ? "bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-1 px-4 rounded text-sm w-full transition-colors"
+            : "bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-4 rounded text-sm w-full transition-colors";
+    }
+    timerInterval = setInterval(updateTimer, 1000);
+
+    // --- Lógica de la Calculadora ---
+    let calcCurrent = '0';
+    let calcPrevious = null;
+    let calcOp = null;
+    let newNum = false;
+
+    function calcAction(action) {
+        const display = document.getElementById('calcDisplay');
+        
+        if (action === 'clear') {
+            calcCurrent = '0'; calcPrevious = null; calcOp = null;
+        } else if (action === 'back') {
+            calcCurrent = calcCurrent.length > 1 ? calcCurrent.slice(0, -1) : '0';
+        } else if (action === '%') {
+            calcCurrent = (parseFloat(calcCurrent) / 100).toString();
+        } else if (['/', '*', '-', '+'].includes(action)) {
+            if (calcOp && !newNum) calculateResult();
+            calcPrevious = calcCurrent;
+            calcOp = action;
+            newNum = true;
+        } else if (action === '=') {
+            if (calcOp) calculateResult();
+            calcOp = null;
+        } else { // Numbers and dot
+            if (newNum) { calcCurrent = action; newNum = false; }
+            else { calcCurrent = calcCurrent === '0' && action !== '.' ? action : calcCurrent + action; }
+        }
+        
+        display.innerText = calcCurrent;
+    }
+
+    function calculateResult() {
+        if (!calcPrevious || !calcOp) return;
+        const prev = parseFloat(calcPrevious);
+        const curr = parseFloat(calcCurrent);
+        let res = 0;
+        switch(calcOp) {
+            case '+': res = prev + curr; break;
+            case '-': res = prev - curr; break;
+            case '*': res = prev * curr; break;
+            case '/': res = prev / curr; break;
+        }
+        // Redondear para evitar errores de precisión de JS
+        calcCurrent = Math.round(res * 100000000) / 100000000;
+        calcCurrent = calcCurrent.toString();
+        newNum = true;
+    }
+
+    // Inicializar app
+    window.onload = initQuiz;
+
+</script>
+</body>
+</html>
