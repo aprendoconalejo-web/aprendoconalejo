@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cambridge Quest: 50-Mission Multi-Skill Adventure</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Explicit 16:9 responsive container */
+        .game-frame {
+            width: 100%;
+            max-width: 1200px;
+            aspect-ratio: 16 / 9;
+            min-height: 580px;
+            max-height: 94vh;
+        }
+
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .animate-pop {
+            animation: popIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.92); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .animate-shake {
+            animation: shake 0.4s ease-in-out 1;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-950 via-purple-900 to-fuchsia-950 min-h-screen w-full flex items-center justify-center p-2 md:p-4 select-none text-slate-800">
+
+    <!-- Main 16:9 Container -->
+    <div id="game-container" class="game-frame bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col relative border-4 border-fuchsia-300">
+        
+        <!-- ================= START SCREEN ================= -->
+        <div id="start-screen" class="flex-1 flex flex-col items-center justify-center bg-gradient-to-b from-fuchsia-50 via-indigo-50 to-white z-20 p-6 text-center overflow-y-auto">
+            <div class="flex items-center gap-3 mb-3">
+                <span class="text-4xl md:text-5xl animate-bounce">🦉</span>
+                <span class="bg-gradient-to-r from-fuchsia-600 to-indigo-600 text-white text-xs md:text-sm font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow">
+                    Part 2 • Multi-Skill Edition
+                </span>
+                <span class="text-4xl md:text-5xl animate-bounce" style="animation-delay: 0.15s">✨</span>
+            </div>
+            <h1 class="text-3xl md:text-5xl font-black text-indigo-950 mb-2 tracking-tight">Cambridge Quest: 50 Missions</h1>
+            <p class="text-sm md:text-lg text-slate-600 mb-4 max-w-2xl font-medium">
+                Evolve your Reading Companion, unlock ranks, and master 5 different challenge types in progressive difficulty!
+            </p>
+            
+            <!-- Game Modes Preview -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-2 max-w-3xl w-full mb-5 text-xs">
+                <div class="bg-white p-2.5 rounded-xl border-2 border-indigo-100 shadow-sm flex flex-col items-center">
+                    <i class="fa-solid fa-puzzle-piece text-indigo-500 text-lg mb-1"></i>
+                    <span class="font-bold text-slate-700">Sentence Builder</span>
+                </div>
+                <div class="bg-white p-2.5 rounded-xl border-2 border-fuchsia-100 shadow-sm flex flex-col items-center">
+                    <i class="fa-solid fa-keyboard text-fuchsia-500 text-lg mb-1"></i>
+                    <span class="font-bold text-slate-700">Word Complete</span>
+                </div>
+                <div class="bg-white p-2.5 rounded-xl border-2 border-amber-100 shadow-sm flex flex-col items-center">
+                    <i class="fa-solid fa-list-ol text-amber-500 text-lg mb-1"></i>
+                    <span class="font-bold text-slate-700">Time Sequencer</span>
+                </div>
+                <div class="bg-white p-2.5 rounded-xl border-2 border-emerald-100 shadow-sm flex flex-col items-center">
+                    <i class="fa-solid fa-tags text-emerald-500 text-lg mb-1"></i>
+                    <span class="font-bold text-slate-700">Skill Classifier</span>
+                </div>
+                <div class="bg-white p-2.5 rounded-xl border-2 border-sky-100 shadow-sm flex flex-col items-center col-span-2 md:col-span-1">
+                    <i class="fa-solid fa-bullseye text-sky-500 text-lg mb-1"></i>
+                    <span class="font-bold text-slate-700">Deep Analysis</span>
+                </div>
+            </div>
+
+            <div class="bg-indigo-900/5 rounded-2xl p-3.5 mb-5 max-w-2xl text-left text-xs md:text-sm text-indigo-950 space-y-1.5 border border-indigo-200">
+                <p><i class="fa-solid fa-layer-group text-fuchsia-600 mr-2"></i><strong>Progressive Difficulty:</strong> Starts gentle (Level 1) and gradually unlocks harder challenges up to Level 5.</p>
+                <p><i class="fa-solid fa-lightbulb text-amber-500 mr-2"></i><strong>2 Tries per Mission:</strong> 1st mistake unlocks a <strong>Spanish Tip</strong> right on screen. 2nd mistake locks the question so you can take a photo for your teacher!</p>
+                <p><i class="fa-solid fa-arrows-left-right text-indigo-600 mr-2"></i><strong>Free Navigation:</strong> Use <strong>Previous</strong> & <strong>Next</strong> buttons anytime to review or photograph any mission.</p>
+            </div>
+
+            <button id="start-btn" type="button" class="cursor-pointer px-8 py-3.5 bg-gradient-to-r from-fuchsia-600 to-indigo-600 hover:from-fuchsia-500 hover:to-indigo-500 text-white text-base md:text-xl font-black rounded-2xl shadow-[0_6px_0_#3730a3] active:translate-y-[4px] active:shadow-none transition-all">
+                Start Adventure! <i class="fa-solid fa-rocket ml-2"></i>
+            </button>
+        </div>
+
+        <!-- ================= GAME UI ================= -->
+        <div id="game-ui" class="hidden flex-1 flex-col h-full w-full bg-slate-50 overflow-hidden">
+            
+            <!-- Gamified Top Bar -->
+            <header class="h-14 md:h-16 bg-gradient-to-r from-indigo-900 via-indigo-800 to-purple-900 text-white flex items-center justify-between px-3 md:px-6 shrink-0 shadow-md">
+                <!-- Left: Pet Companion & Rank -->
+                <div class="flex items-center space-x-2.5">
+                    <div id="pet-avatar" class="text-2xl md:text-3xl bg-white/15 p-1.5 rounded-xl border border-white/20 shadow-inner" title="Your Companion">🥚</div>
+                    <div>
+                        <div class="flex items-center gap-1.5">
+                            <span id="rank-title" class="text-xs md:text-sm font-extrabold text-amber-300 tracking-wide">Novice Explorer</span>
+                        </div>
+                        <div class="text-[11px] text-indigo-200 flex items-center gap-2">
+                            <span><i class="fa-solid fa-star text-yellow-400 mr-1"></i><strong id="score-display">0</strong>/50 pts</span>
+                            <span id="streak-badge" class="bg-orange-500/30 border border-orange-400/50 text-orange-200 px-1.5 py-0.2 rounded-full text-[10px] font-bold">
+                                🔥 <span id="streak-count">0</span> streak
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center: Mission Counter & Type -->
+                <div class="flex flex-col items-center">
+                    <div class="flex items-center gap-1.5 mb-0.5">
+                        <span id="type-badge" class="text-[10px] md:text-xs font-extrabold uppercase tracking-wider bg-fuchsia-500 text-white px-2.5 py-0.5 rounded-full shadow-sm">
+                            Challenge
+                        </span>
+                        <span id="category-badge" class="hidden sm:inline-block text-[10px] md:text-xs font-bold uppercase tracking-wider bg-indigo-700 text-indigo-100 px-2.5 py-0.5 rounded-full">
+                            Section
+                        </span>
+                    </div>
+                    <div class="text-xs md:text-sm font-black tracking-wide text-white">
+                        Mission <span id="question-counter">1</span> of 50
+                    </div>
+                </div>
+
+                <!-- Right: Progressive Level & Lives on current question -->
+                <div class="flex items-center gap-2">
+                    <span id="attempts-indicator" class="text-xs font-bold bg-emerald-500/20 border border-emerald-400 text-emerald-200 px-2.5 py-1 rounded-full">
+                        ❤️❤️ 2 Tries
+                    </span>
+                    <span id="difficulty-badge" class="text-xs font-extrabold px-2.5 py-1 rounded-full bg-sky-400 text-slate-950 shadow-sm">
+                        Lvl 1
+                    </span>
+                </div>
+            </header>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-200 h-1.5 shrink-0">
+                <div id="progress-bar" class="bg-gradient-to-r from-fuchsia-500 to-indigo-500 h-1.5 transition-all duration-300 w-0"></div>
+            </div>
+
+            <!-- Main Content Split Area -->
+            <main class="flex-1 flex flex-col md:flex-row overflow-hidden">
+                
+                <!-- Left Column: Extract, Question & Persistent Spanish Tip / Photo Review Box -->
+                <div class="w-full md:w-5/12 p-3.5 md:p-5 flex flex-col justify-between overflow-y-auto custom-scroll border-b md:border-b-0 md:border-r border-slate-200 bg-white">
+                    <div>
+                        <!-- Extract Box -->
+                        <div id="extract-container" class="bg-indigo-50/80 border-l-4 border-indigo-600 p-3 rounded-r-xl text-slate-700 text-xs md:text-sm leading-relaxed mb-3 shadow-sm">
+                            <p id="extract-text"></p>
+                        </div>
+
+                        <!-- Question Prompt -->
+                        <div class="flex items-start gap-2 mb-3">
+                            <span id="q-number-pill" class="bg-indigo-600 text-white font-black text-xs px-2.5 py-1 rounded-lg shrink-0 mt-0.5">Q1</span>
+                            <h2 id="question-text" class="text-sm md:text-lg font-extrabold text-slate-800 leading-snug">Question goes here</h2>
+                        </div>
+                    </div>
+
+                    <!-- Persistent Feedback / Spanish Tip / Photo Evidence Box (Stays visible for photos!) -->
+                    <div id="feedback-banner" class="hidden rounded-2xl p-3.5 border-2 text-xs md:text-sm animate-pop mt-2">
+                        <!-- Dynamically populated on 1st mistake, 2nd mistake, or correct -->
+                    </div>
+                </div>
+
+                <!-- Right Column: Interactive Workspace (5 Mechanics) -->
+                <div class="w-full md:w-7/12 p-3.5 md:p-6 flex flex-col justify-between bg-slate-50 overflow-y-auto custom-scroll">
+                    <div id="workspace-container" class="w-full my-auto">
+                        <!-- Dynamic Interactive Widget rendered here -->
+                    </div>
+
+                    <!-- Action Button for interactive tasks (Check Answer) -->
+                    <div id="action-bar" class="mt-3 flex justify-end">
+                        <button id="submit-answer-btn" type="button" class="hidden cursor-pointer px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-xl shadow-[0_4px_0_#3730a3] active:translate-y-[3px] active:shadow-none transition-all text-xs md:text-sm">
+                            <i class="fa-solid fa-check-double mr-1.5"></i>Check My Answer
+                        </button>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Bottom Navigation Bar (Previous / Status Dots / Next) -->
+            <footer class="h-13 md:h-14 bg-white border-t border-slate-200 px-3 md:px-6 flex items-center justify-between shrink-0">
+                <button id="prev-btn" type="button" class="cursor-pointer px-3.5 py-1.5 md:px-4 md:py-2 rounded-xl font-bold text-xs md:text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrow-left"></i> Previous
+                </button>
+
+                <div class="flex items-center gap-2 text-xs text-slate-500 font-semibold">
+                    <span id="mission-status-pill" class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 font-bold">
+                        In Progress
+                    </span>
+                    <button id="finish-early-btn" type="button" class="hidden cursor-pointer text-xs bg-amber-500 hover:bg-amber-400 text-white font-extrabold px-3 py-1 rounded-full shadow">
+                        <i class="fa-solid fa-flag-checkered mr-1"></i>See Final Score
+                    </button>
+                </div>
+
+                <button id="next-btn" type="button" class="cursor-pointer px-3.5 py-1.5 md:px-4 md:py-2 rounded-xl font-bold text-xs md:text-sm bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1.5 shadow-sm">
+                    Next <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </footer>
+        </div>
+
+        <!-- ================= END SCREEN ================= -->
+        <div id="end-screen" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-indigo-950 via-purple-900 to-fuchsia-950 z-50 p-6 text-center text-white overflow-y-auto">
+            <div id="final-pet" class="text-6xl md:text-7xl mb-2 animate-bounce">🐉</div>
+            <h1 class="text-3xl md:text-5xl font-black mb-1">Adventure Complete!</h1>
+            <p id="final-rank-badge" class="text-sm md:text-lg text-amber-300 font-extrabold uppercase tracking-widest mb-4">Grandmaster of Cambridge</p>
+            
+            <div class="bg-white/10 backdrop-blur-md rounded-3xl p-5 md:p-6 mb-5 border border-white/20 max-w-md w-full">
+                <div class="text-indigo-200 text-xs uppercase tracking-widest mb-1 font-bold">Total Points Earned</div>
+                <div class="text-5xl md:text-6xl font-black text-yellow-400 drop-shadow-lg"><span id="final-score">0</span><span class="text-2xl text-indigo-200">/50</span></div>
+                <p id="final-message" class="mt-2 text-xs md:text-sm text-indigo-100 font-medium">Amazing effort!</p>
+            </div>
+
+            <div class="flex gap-3">
+                <button id="review-missions-btn" type="button" class="cursor-pointer px-5 py-3 bg-white/20 hover:bg-white/30 text-white text-sm md:text-base font-bold rounded-2xl border border-white/30 transition-all">
+                    <i class="fa-solid fa-camera mr-2"></i>Review Missions / Take Photos
+                </button>
+                <button id="restart-btn" type="button" class="cursor-pointer px-6 py-3 bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-sm md:text-base font-black rounded-2xl shadow-[0_5px_0_#701a75] active:translate-y-[4px] active:shadow-none transition-all">
+                    <i class="fa-solid fa-rotate-right mr-2"></i>Play Again
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ============================================================================
+        // NATIVE WEB AUDIO SYNTHESIZER (Pleasant chimes, combo sounds, zero external deps)
+        // ============================================================================
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) audioCtx = new AudioContextClass();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+
+        function playTone(freq, type, startTime, duration, maxGain = 0.14) {
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, startTime);
+                gain.gain.setValueAtTime(0.001, startTime);
+                gain.gain.linearRampToValueAtTime(maxGain, startTime + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(startTime);
+                osc.stop(startTime + duration);
+            } catch (e) {}
+        }
+
+        function playClickSound() {
+            const ctx = getAudioContext();
+            if (!ctx) return;
+            playTone(620, 'sine', ctx.currentTime, 0.06, 0.07);
+        }
+
+        function playCorrectSound() {
+            const ctx = getAudioContext();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+            // Sparkling harp-like major 9th arpeggio
+            const notes = [523.25, 659.25, 783.99, 987.77, 1174.66, 1567.98];
+            notes.forEach((f, i) => playTone(f, 'triangle', now + i * 0.055, 0.32, 0.14));
+        }
+
+        function playTipSound() {
+            const ctx = getAudioContext();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+            playTone(440, 'sine', now, 0.15, 0.12);
+            playTone(349.23, 'sine', now + 0.14, 0.25, 0.12);
+        }
+
+        function playLostSound() {
+            const ctx = getAudioContext();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+            playTone(311.13, 'sawtooth', now, 0.2, 0.08);
+            playTone(277.18, 'sawtooth', now + 0.15, 0.2, 0.08);
+            playTone(233.08, 'sawtooth', now + 0.30, 0.35, 0.08);
+        }
+
+        // ============================================================================
+        // 50 PROGRESSIVE MULTI-SKILL MISSIONS (Strictly from the Cambridge Stage 8 Guide)
+        // Types:
+        //  - 'fill'     : Word Completion (with letter clues + clickable word bank or typing)
+        //  - 'scramble' : Sentence / Formula Builder (click word chips to assemble)
+        //  - 'sequence' : Chronological & Strategy Sequencer (click in order 1..N)
+        //  - 'classify' : Skill / Feature Classifier (click category pill)
+        //  - 'mcq'      : Deep Reading Analysis
+        // ============================================================================
+        const missions = [
+            // ---------------- LEVEL 1: WARM-UP (Missions 1 - 10) ----------------
+            {
+                level: 1, type: 'classify', category: 'Core Ideas',
+                extract: 'Example from the guide: "Leila zipped her coat to her chin and stamped her feet."',
+                question: 'Classify the statement: "Leila zipped her coat." Is it an Explicit Fact or an Inference?',
+                categories: ['Explicit Fact (Stated directly)', 'Inference (Worked out from clues)'],
+                correct: 0,
+                tip: '¡Mira el texto! "Leila zipped her coat" aparece escrito palabra por palabra en la oración. Por eso es un hecho explícito (Explicit Fact).'
+            },
+            {
+                level: 1, type: 'classify', category: 'Core Ideas',
+                extract: 'Example from the guide: "Leila zipped her coat to her chin and stamped her feet."',
+                question: 'Classify the statement: "It is cold outside." Is it an Explicit Fact or an Inference?',
+                categories: ['Explicit Fact (Stated directly)', 'Inference (Worked out from clues)'],
+                correct: 1,
+                tip: 'El texto no dice directamente que hace frío, pero lo deducimos porque ella se sube el cierre hasta la barbilla. ¡Es una inferencia!'
+            },
+            {
+                level: 1, type: 'scramble', category: 'Sec 1: Inference',
+                extract: 'Section 1 — Inference formula from the revision guide.',
+                question: 'Tap the blocks in the right order to build the official Cambridge Inference Formula:',
+                words: ['Clue from the text', '+', 'my reasoning', '=', 'inference'],
+                tip: 'Recuerda la fórmula de la página 3: Primero va la pista del texto ("Clue from the text"), luego "+" tu razonamiento ("my reasoning") "=" "inference".'
+            },
+            {
+                level: 1, type: 'fill', category: 'Strategy',
+                extract: 'Step 1: Read the question carefully. Underline the _______ word (give, explain, suggest, quote) and the number of marks.',
+                question: 'Complete the missing word from Step 1 of the strategy (starts with C):',
+                answer: 'command',
+                hintPattern: 'c _ m m _ n d',
+                wordBank: ['command', 'context', 'character', 'closing'],
+                tip: 'Las palabras como "give, explain, suggest, quote" que te dicen qué hacer se llaman "command words" (palabras de comando).'
+            },
+            {
+                level: 1, type: 'classify', category: 'Sec 1: The New Boy',
+                extract: 'Tomás pushed open the classroom door and paused... He walked to the only empty desk, at the back, and slid his bag under it without a sound. When the teacher said his name, he jumped.',
+                question: 'Classify the statement: "Tomás sits at the back of the classroom."',
+                categories: ['Explicit Fact', 'Inference'],
+                correct: 0,
+                tip: 'El texto dice explícitamente: "He walked to the only empty desk, at the back". Está dicho directamente (Explicit Fact).'
+            },
+            {
+                level: 1, type: 'classify', category: 'Sec 1: The New Boy',
+                extract: 'He walked to the only empty desk, at the back, and slid his bag under it without a sound. All through the lesson, he kept his eyes on the clock and his hands pressed flat on his knees.',
+                question: 'Classify the statement: "Tomás does not like being noticed."',
+                categories: ['Explicit Fact', 'Inference'],
+                correct: 1,
+                tip: 'El autor no lo dice directamente; nosotros lo inferimos porque mete su maleta sin hacer ruido y se queda muy quieto (Inference).'
+            },
+            {
+                level: 1, type: 'fill', category: 'Sec 2: Vocabulary',
+                extract: 'The harbour at dawn was quiet except for the gulls... The catch was ______: only a few silver fish flapped in the bottom of each net.',
+                question: 'Find and complete the exact word from "The Quiet Harbour" that means "very small in amount":',
+                answer: 'meagre',
+                hintPattern: 'm e a _ r e',
+                wordBank: ['meagre', 'hardy', 'plenty', 'silver'],
+                tip: 'Busca la palabra que está justo antes de los dos puntos (: "only a few silver fish"). Se escribe "meagre".'
+            },
+            {
+                level: 1, type: 'fill', category: 'Sec 2: Garden Club',
+                extract: 'Thank you for turning up on Saturday. We managed to clear the whole bed, though the roots were ________ and some of them ran deep.',
+                question: 'Which single word in the email tells the reader that the roots were difficult to remove?',
+                answer: 'stubborn',
+                hintPattern: 's t u b b _ r n',
+                wordBank: ['stubborn', 'light', 'spare', 'beans'],
+                tip: 'La palabra que describe que las raíces eran tercas o difíciles de sacar es "stubborn".'
+            },
+            {
+                level: 1, type: 'classify', category: 'Sec 5: Style',
+                extract: 'Greeting: "Hi Sam," / "Guess what?" / "Lots of love, Zainab xx"',
+                question: 'Which writing style do these features belong to?',
+                categories: ['Informal Style (Friend or Family)', 'Formal Style (Teacher or Official)'],
+                correct: 0,
+                tip: 'Saludos como "Hi Sam" o despedidas cariñosas como "Lots of love" son de estilo Informal (para amigos o familia).'
+            },
+            {
+                level: 1, type: 'classify', category: 'Sec 5: Style',
+                extract: 'Greeting: "Dear Mr Ferreira," / "I would be grateful if you could consider this request" / "Yours sincerely,"',
+                question: 'Which writing style do these features belong to?',
+                categories: ['Informal Style (Friend or Family)', 'Formal Style (Teacher or Official)'],
+                correct: 1,
+                tip: 'Dirigirse al profesor como "Dear Mr Ferreira" y despedirse con "Yours sincerely" es estilo Formal.'
+            },
+
+            // ---------------- LEVEL 2: SKILL BUILDER (Missions 11 - 20) ----------------
+            {
+                level: 2, type: 'fill', category: 'Sec 2: Garden Club',
+                extract: 'Please bring your own gloves next time because the _____ pair has been lost.',
+                question: 'Which word in the Garden Club email means "extra and kept in reserve"?',
+                answer: 'spare',
+                hintPattern: 's p _ r e',
+                wordBank: ['spare', 'light', 'free', 'whole'],
+                tip: 'El par de guantes extra que tenían guardado se llama "spare" (de repuesto).'
+            },
+            {
+                level: 2, type: 'scramble', category: 'Sec 2: Harbour',
+                extract: 'The fishermen, hardy men with weathered faces, hauled their nets onto the stone quay.',
+                question: 'Build the exact two-word phrase from the extract that shows the fishermen have spent many years working outdoors:',
+                words: ['weathered', 'faces'],
+                distractors: ['stone', 'hardy', 'silver'],
+                tip: 'La guía pide una frase de dos palabras ("two-word phrase") que describe sus rostros curtidos por el clima: "weathered faces".'
+            },
+            {
+                level: 2, type: 'mcq', category: 'Sec 2: Polysemy',
+                extract: 'Watch out: words with more than one meaning. In the Garden Club email: "I know the digging was hard on our backs, but the soil is now light and ready for planting."',
+                question: 'The word "light" has several meanings. What does it mean in "the soil is now light"?',
+                options: [
+                    'Loose, crumbly and easy to dig',
+                    'Bright and shining like the sun',
+                    'Pale in colour',
+                    'To set fire to something'
+                ],
+                correct: 0,
+                tip: 'Como están hablando de cavar la tierra del jardín ("soil") para plantar, "light" significa que la tierra quedó suelta y fácil de cavar.'
+            },
+            {
+                level: 2, type: 'scramble', category: 'Sec 3: Language',
+                extract: 'Section 3 — Language for Effect: Naming a technique earns no marks on its own.',
+                question: 'Arrange the 3 parts of the official Response Structure for "Language for Effect" questions:',
+                words: ["Writer's choice", '+', 'meaning or implication', '+', 'effect on the reader'],
+                tip: 'Primero mencionas la palabra elegida ("Writer\'s choice"), luego su significado ("meaning or implication") y finalmente el impacto ("effect on the reader").'
+            },
+            {
+                level: 2, type: 'classify', category: 'Sec 3: Techniques',
+                extract: '"The wind whispered at the window." / "The wind howled around the cabin, clawing at the shutters as if it wanted to get inside."',
+                question: 'When the writer gives the wind human or animal actions (whispering, clawing), which technique is used?',
+                categories: ['Personification / Zoomorphism', 'Chronological Time Marker', 'Formal Sign-off'],
+                correct: 0,
+                tip: 'Darle cualidades humanas o de un ser vivo al viento (susurrar, arañar) es Personificación (Personification).'
+            },
+            {
+                level: 2, type: 'fill', category: 'Sec 3: Dark Corridor',
+                extract: 'Somewhere ahead, a door groaned open... He froze. His heart ________ against his ribs as a cold shadow slid across the floor.',
+                question: 'Complete the strong verb that shows Jamal\'s heart is beating violently with terror:',
+                answer: 'hammered',
+                hintPattern: 'h a m m _ r e d',
+                wordBank: ['hammered', 'whispered', 'flickered', 'groaned'],
+                tip: 'El verbo fuerte que compara los latidos de su corazón con golpes de martillo contra sus costillas es "hammered".'
+            },
+            {
+                level: 2, type: 'classify', category: 'Sec 4: Characters',
+                extract: 'Section 4: "nervous at the edge of the pool" vs "suspicious of new technology".',
+                question: 'How a character thinks about or treats something over time (like Grandma being suspicious of phones) is called an:',
+                categories: ['Attitude', 'Explicit Time Marker'],
+                correct: 0,
+                tip: 'La guía explica que una postura hacia algo o alguien (como desconfiar de la tecnología) se llama "Attitude" (actitud).'
+            },
+            {
+                level: 2, type: 'mcq', category: 'Sec 4: Sofia',
+                extract: 'Today, standing at the edge of the pool, she gripped her towel so tightly that her knuckles turned white. "I\'ll just watch," she said. But when the teacher held out a hand, Sofia took a deep breath, wiped her eyes and stepped down the first slippery stair.',
+                question: 'Which two short quotations best prove BOTH that Sofia is frightened AND that she finds courage?',
+                options: [
+                    '"her knuckles turned white" (frightened) AND "stepped down the first slippery stair" (courage)',
+                    '"Every Tuesday" (frightened) AND "at the edge of the pool" (courage)',
+                    '"I\'ll just watch" (frightened) AND "woke with a stomach ache" (courage)',
+                    '"hated swimming lessons" (frightened) AND "begged to stay at home" (courage)'
+                ],
+                correct: 0,
+                tip: 'Para probar ambas ideas necesitas una cita de miedo ("her knuckles turned white") y una de valentía al entrar al agua ("stepped down the first slippery stair").'
+            },
+            {
+                level: 2, type: 'classify', category: 'Sec 5: Text Types',
+                extract: 'Typical features: Date at the top; first person ("I"); personal thoughts and feelings; past tense.',
+                question: 'Which text type from Section 5 matches these exact features?',
+                categories: ['Diary Entry', 'Public Notice', 'Formal Email'],
+                correct: 0,
+                tip: 'Escribir la fecha, usar primera persona ("I") y contar pensamientos personales en pasado son las características de un "Diary Entry" (entrada de diario).'
+            },
+            {
+                level: 2, type: 'classify', category: 'Sec 5: Text Types',
+                extract: 'Typical features: Catchy headline; direct address ("you"); commands; special offers; emotive or exciting language.',
+                question: 'Which text type from Section 5 matches these exact features?',
+                categories: ['Advertisement', 'Narrative Fiction', 'Personal Diary'],
+                correct: 0,
+                tip: 'Un titular llamativo, hablarle de "tú" al lector y ofrecer promociones con lenguaje emocionante es un anuncio publicitario ("Advertisement").'
+            },
+
+            // ---------------- LEVEL 3: INTERMEDIATE QUESTS (Missions 21 - 30) ----------------
+            {
+                level: 3, type: 'sequence', category: 'Sec 6: Ines Walk',
+                extract: 'Before sunrise, Ines packed her rucksack. By seven o\'clock she had crossed the river, and at the summit she ate her sandwich and wrote in her notebook. As clouds gathered, she hurried down, reaching home just as the first drops of rain fell.',
+                question: 'Click the events in the exact CHRONOLOGICAL order (1 to 4) in which they happened:',
+                items: [
+                    'Ines packed her rucksack.',
+                    'Ines crossed the river.',
+                    'Ines ate her sandwich at the summit.',
+                    'Ines reached home as rain fell.'
+                ],
+                tip: 'Sigue las pistas de tiempo: 1° "Before sunrise" (empacó), 2° "By seven o\'clock" (cruzó el río), 3° "at the summit" (comió su sándwich), 4° "reaching home" (llegó a casa).'
+            },
+            {
+                level: 3, type: 'scramble', category: 'Sentence Starters',
+                extract: 'Page 2 & 4 — Useful sentence starters for explaining evidence.',
+                question: 'Put the words in order to form a strong Cambridge sentence starter for inference:',
+                words: ['The', 'reader', 'can', 'infer', 'that', 'Amara', 'is', 'anxious.'],
+                tip: 'Empieza con el sujeto "The reader", luego el verbo modal "can infer that", seguido de "Amara is anxious."'
+            },
+            {
+                level: 3, type: 'mcq', category: 'Sec 1: Silent Kitchen',
+                extract: 'The kitchen smelled of cinnamon, just as it always had, but the radio on the shelf was silent and the calendar still showed March. Lucía put down her suitcase and ran a finger along the table. It left a clean line in the dust.',
+                question: 'The writer says the kitchen smelled of cinnamon "just as it always had". Why does this create mixed feelings for Lucía?',
+                options: [
+                    'The familiar smell brings comforting, nostalgic memories, contrasting with the worrying silence and dust.',
+                    'She dislikes the smell of cinnamon and wants to open the windows immediately.',
+                    'It shows someone has just baked a fresh cake five minutes ago.',
+                    'It proves she has never visited her grandfather\'s house before.'
+                ],
+                correct: 0,
+                tip: 'El olor familiar ("just as it always had") le trae recuerdos cálidos y nostálgicos, pero choca con la tristeza de ver la cocina silenciosa y llena de polvo.'
+            },
+            {
+                level: 3, type: 'fill', category: 'Sec 2: Context Clues',
+                extract: 'The path was ___________: one wrong step could send you tumbling down the cliff.',
+                question: 'Complete the word from the Section 2 table that means "dangerous" (explained after the colon):',
+                answer: 'treacherous',
+                hintPattern: 't r e a c h _ r o u s',
+                wordBank: ['treacherous', 'agitated', 'elated', 'fragile'],
+                tip: 'En la tabla de la página 8, el camino peligroso donde un mal paso te hace caer por el acantilado se describe como "treacherous".'
+            },
+            {
+                level: 3, type: 'fill', category: 'Sec 2: Context Clues',
+                extract: 'Tia leapt into the air, hugging her team-mates. She was ______.',
+                question: 'Complete the word from Section 2 that means "extremely happy", shown by Tia\'s actions:',
+                answer: 'elated',
+                hintPattern: 'e l _ t e d',
+                wordBank: ['elated', 'agitated', 'meagre', 'hardy'],
+                tip: 'Saltar en el aire y abrazar a su equipo demuestra que estaba extremadamente feliz: "elated".'
+            },
+            {
+                level: 3, type: 'scramble', category: 'Sec 3: Lake at Dawn',
+                extract: 'By seven o\'clock the lake was perfectly still... Somewhere in the reeds, a heron stood motionless, as calm as a statue.',
+                question: 'Rebuild the exact simile from "The Lake at Dawn" that describes the heron:',
+                words: ['as', 'calm', 'as', 'a', 'statue'],
+                distractors: ['like', 'soft', 'blanket'],
+                tip: 'Un símil compara usando "as ... as" o "like". Para la garza (heron) dice: "as calm as a statue".'
+            },
+            {
+                level: 3, type: 'mcq', category: 'Sec 3: Punctuation',
+                extract: 'Section 3 Table — Punctuation for Effect: "We won!" vs "The door opened..." vs "He listened. Silence."',
+                question: 'According to the Section 3 table, what is the effect of using a short sentence like "Silence." or "Nothing."?',
+                options: [
+                    'It slows the pace, creates a sudden stop, and builds dramatic tension.',
+                    'It shows the writer forgot to finish the paragraph.',
+                    'It makes the scene fast, cheerful, and humorous.',
+                    'It gives detailed background information about the weather.'
+                ],
+                correct: 0,
+                tip: 'Las oraciones de una sola palabra detienen el ritmo de golpe ("sudden stop") y aumentan la tensión dramática.'
+            },
+            {
+                level: 3, type: 'mcq', category: 'Sec 4: Mr Okafor',
+                extract: 'Mr Okafor read the note twice, folded it into a neat square and slipped it into his pocket. "Thank you for telling me," he said quietly. When his daughter had gone upstairs, he stood at the window for a long time, one hand pressed against the glass.',
+                question: 'What is the common mistake the guide warns against when using quotations in Section 4?',
+                options: [
+                    'Copying a long quotation without explaining it, or repeating the same word ("shows he is angry because he is angry").',
+                    'Keeping quotations short (3 to 8 words) inside speech marks.',
+                    'Using the starter "This suggests that... because...".',
+                    'Choosing two separate pieces of evidence.'
+                ],
+                correct: 0,
+                tip: 'El error común ("Common mistake" de la pág. 18) es copiar una cita larga sin explicarla o caer en redundancias circulares.'
+            },
+            {
+                level: 3, type: 'scramble', category: 'Sec 4: Grandma',
+                extract: 'Grandma Beatriz held the new phone at arm\'s length, as though it might bite.',
+                question: 'Assemble the exact 5-word simile that shows Grandma treats the phone like a dangerous animal:',
+                words: ['as', 'though', 'it', 'might', 'bite'],
+                distractors: ['her', 'face', 'softened'],
+                tip: 'La comparación exacta en el texto de la abuela Beatriz es: "as though it might bite" (como si pudiera morder).'
+            },
+            {
+                level: 3, type: 'classify', category: 'Sec 5: Purpose',
+                extract: '"Rhetorical questions, commands, emotive language, special offers, and a sense of urgency."',
+                question: 'Which Author\'s Purpose uses these techniques?',
+                categories: ['To Persuade', 'To Inform Neutrally', 'To Sequence Events'],
+                correct: 0,
+                tip: 'Usar preguntas retóricas, órdenes, ofertas y urgencia busca convencer al lector: "To Persuade" (persuadir).'
+            },
+
+            // ---------------- LEVEL 4: ADVANCED CHALLENGES (Missions 31 - 40) ----------------
+            {
+                level: 4, type: 'sequence', category: 'Sec 6: Grandfather\'s Kite',
+                extract: 'On Saturday morning he carried it to the top of Windy Hill. At first, the kite refused to rise... Then a gust caught it and it soared. Hugo laughed - until the string snapped. He chased the kite down the hill, across a stream and over a fence, and finally found it tangled in a tree. By evening, the kite was mended...',
+                question: 'Click all 5 events from "Grandfather\'s Kite" in the exact chronological order (1 to 5):',
+                items: [
+                    'Hugo carried the kite to the top of Windy Hill.',
+                    'A gust of wind lifted the kite.',
+                    'The string snapped.',
+                    'Hugo found the kite tangled in a tree.',
+                    'The kite was mended and hung back in the shed.'
+                ],
+                tip: 'Orden cronológico: 1° Subió a Windy Hill, 2° Una ráfaga elevó la cometa, 3° Se rompió la cuerda, 4° La encontró en un árbol, 5° Fue reparada.'
+            },
+            {
+                level: 4, type: 'sequence', category: 'Sec 6: The Surprise',
+                extract: 'Nadia and Felix had hidden in the pantry since three o\'clock... When the front door clicked, Nadia\'s eyes widened and she clutched the banner so hard that it crumpled. Felix, still chewing, simply grinned. "Surprise!" they cried together, and Mum\'s startled face broke into a delighted smile.',
+                question: 'Click all 5 events from "The Surprise" in the exact chronological order (1 to 5):',
+                items: [
+                    'The children hid in the pantry.',
+                    'The front door clicked.',
+                    'Nadia clutched the banner tightly.',
+                    'Nadia and Felix shouted "Surprise!"',
+                    'Mum broke into a delighted smile.'
+                ],
+                tip: 'Orden exacto: 1° Se escondieron en la despensa, 2° Sonó la puerta ("clicked"), 3° Nadia apretó la pancarta, 4° Gritaron "Surprise!", 5° Mamá sonrió.'
+            },
+            {
+                level: 4, type: 'sequence', category: '6-Step Strategy',
+                extract: 'Page 1 — My six-step strategy for every Cambridge reading question.',
+                question: 'Place the first 4 steps of the Cambridge Reading Strategy into the right sequence (1 to 4):',
+                items: [
+                    'Read the question carefully and underline the command word.',
+                    'Identify the relevant word, line, paragraph or section.',
+                    'Find clues in the text (actions, descriptions, punctuation).',
+                    'Select the most relevant short, exact evidence.'
+                ],
+                tip: '1° Leer la pregunta y subrayar el comando, 2° Ubicar el párrafo o línea, 3° Buscar pistas en el texto, 4° Seleccionar la evidencia exacta.'
+            },
+            {
+                level: 4, type: 'scramble', category: 'Sec 5: Formal to Informal',
+                extract: 'Exercise 5.2 Q5: Rewrite the formal sentence "I would be grateful if you could consider this request" in an informal style.',
+                question: 'Build the model informal rewrite from the Teacher\'s Key:',
+                words: ['Can', 'you', 'think', 'about', 'it,', 'please?'],
+                distractors: ['grateful', 'sincerely', 'consider'],
+                tip: 'Para pasarlo a estilo informal usamos vocabulario sencillo y directo: "Can you think about it, please?"'
+            },
+            {
+                level: 4, type: 'fill', category: 'Sec 1: Silent Kitchen',
+                extract: 'The kitchen smelled of ________, just as it always had, but the radio on the shelf was silent and the calendar still showed March.',
+                question: 'Complete the word that triggers Lucía\'s nostalgic memories as she enters the kitchen:',
+                answer: 'cinnamon',
+                hintPattern: 'c i n n _ m o n',
+                wordBank: ['cinnamon', 'coffee', 'lavender', 'pine'],
+                tip: 'La cocina olía a canela ("cinnamon"), igual que siempre.'
+            },
+            {
+                level: 4, type: 'mcq', category: 'Sec 2: Garden Club',
+                extract: '"Our next job is to plant the beans, so keep Saturday free!"',
+                question: 'What does the instruction "keep Saturday free" mean, and which context clue proves it?',
+                options: [
+                    'It means "do not make other plans for Saturday", proven by the clue "Our next job is to plant the beans".',
+                    'It means "the garden club costs no money on Saturday", proven by "lost gloves".',
+                    'It means "let the beans grow wild outside", proven by "the roots ran deep".',
+                    'It means "you do not need to attend next week", proven by "Thank you for turning up".'
+                ],
+                correct: 0,
+                tip: 'Significa no hacer otros planes para estar disponible el sábado, porque la pista anterior dice que el próximo trabajo es plantar los frijoles ("plant the beans").'
+            },
+            {
+                level: 4, type: 'mcq', category: 'Sec 3: Lake at Dawn',
+                extract: 'By seven o\'clock the lake was perfectly still. Pale mist drifted over the water like a soft blanket, and the only sound was the gentle lapping of the waves against the wooden jetty.',
+                question: 'Which response earns all 3 marks for explaining the effect of the verb "drifted" using the guide\'s structure?',
+                options: [
+                    'The verb "drifted" (choice) suggests the mist moves slowly and effortlessly without wind (meaning), making the reader imagine a calm, dreamlike morning and feel relaxed (effect).',
+                    'The writer uses the verb "drifted" in the second sentence, which is a strong verb technique.',
+                    '"Drifted" means water is moving fast across the lake.',
+                    'The mist is pale and covers the wooden jetty at seven o\'clock.'
+                ],
+                correct: 0,
+                tip: 'Para ganar los 3 puntos debe incluir: 1) la palabra ("drifted"), 2) qué sugiere (movimiento lento y sin esfuerzo) y 3) el efecto en el lector (imaginarse una mañana tranquila y relajante).'
+            },
+            {
+                level: 4, type: 'scramble', category: 'Sec 6: Kite Determination',
+                extract: 'Hugo laughed - until the string snapped. He chased the kite down the hill, across a stream and over a fence, and finally found it tangled in a tree.',
+                question: 'Assemble the phrase that proves Hugo was determined to rescue his grandfather\'s kite:',
+                words: ['chased', 'the', 'kite', 'down', 'the', 'hill'],
+                distractors: ['refused', 'to', 'rise'],
+                tip: 'La evidencia de que no se rindió es que persiguió la cometa colina abajo: "chased the kite down the hill".'
+            },
+            {
+                level: 4, type: 'classify', category: 'Sec 3: Language Table',
+                extract: '"Her voice was a blade of ice."',
+                question: 'According to the Section 3 table, which language feature is "Her voice was a blade of ice", and what does it suggest?',
+                categories: ['Metaphor — suggests her voice is cold, sharp, and hurtful', 'Personification — suggests she is happy and warm', 'Ellipsis — suggests a long pause'],
+                correct: 0,
+                tip: 'Comparar su voz directamente con una cuchilla de hielo sin usar "like/as" es una Metáfora, y sugiere frialdad y dureza.'
+            },
+            {
+                level: 4, type: 'fill', category: 'Sec 6: The Surprise',
+                extract: '"Surprise!" they cried together, and Mum\'s startled face broke into a _________ smile.',
+                question: 'Complete the adjective that proves the children\'s surprise was successful:',
+                answer: 'delighted',
+                hintPattern: 'd e l i g h _ e d',
+                wordBank: ['delighted', 'startled', 'crumpled', 'silent'],
+                tip: 'Aunque al principio se sobresaltó ("startled"), su rostro pasó a una sonrisa encantada: "delighted".'
+            },
+
+            // ---------------- LEVEL 5: CAMBRIDGE MASTER (Missions 41 - 50) ----------------
+            {
+                level: 5, type: 'mcq', category: 'Sec 1: New Boy Trap',
+                extract: 'Teacher\'s Answer Key Trap — Exercise 1.1 Question 1: "What two details suggest that Tomás is new to the class?"',
+                question: 'Why does the Teacher\'s Answer Key state: "Do NOT credit \'he is nervous\' on its own" for Question 1?',
+                options: [
+                    'Because "nervous" is a feeling, not a textual detail/evidence proving that he is new to the class.',
+                    'Because Tomás is actually angry and bored, not nervous.',
+                    'Because students are never allowed to write about feelings in Section 1.',
+                    'Because the teacher did not speak to Tomás.'
+                ],
+                correct: 0,
+                tip: '¡Ojo con la trampa del examen! Decir "está nervioso" es un sentimiento, pero la pregunta pedía dos DETALLES del texto que prueben que es nuevo (como que 20 cabezas voltearon a mirarlo).'
+            },
+            {
+                level: 5, type: 'mcq', category: 'Sec 4: Grandma Nuance',
+                extract: 'She tutted, but when the picture of the garden appeared on the screen, her face softened, and she asked quietly whether he could show her once more.',
+                question: 'Why is "enthusiastic and impatient to learn more" an INCORRECT description of Grandma Beatriz at the end?',
+                options: [
+                    'It overstates her reaction; she asks "quietly" to be shown once more, so she is cautious but willing to learn.',
+                    'Because she threw the phone away and refused to look at the screen.',
+                    'Because she already knew how to send photos before her grandson arrived.',
+                    'Because she is completely indifferent and uninterested.'
+                ],
+                correct: 0,
+                tip: 'Decir que está "entusiasmada e impaciente" exagera su cambio; como pregunta en voz baja ("asked quietly"), la respuesta exacta es cautelosa pero dispuesta ("cautious but willing to learn").'
+            },
+            {
+                level: 5, type: 'scramble', category: 'Sec 4: Evidence Rule',
+                extract: 'Section 4 Table: Difference between a Quotation and an Explanation.',
+                question: 'Build the key rule from Page 17 about quotations:',
+                words: ['A', 'quotation', 'is', 'evidence,', 'not', 'an', 'answer.'],
+                tip: 'La regla de oro de la página 17 dice: "A quotation is evidence, not an answer." (Una cita es evidencia, no una respuesta por sí sola; debes explicarla).'
+            },
+            {
+                level: 5, type: 'mcq', category: 'Sec 5: Common Mistake',
+                extract: 'Section 5 Common Mistake: A student writes, "The exclamation mark shows the text is persuasive."',
+                question: 'Why does the guide say this explanation is flawed?',
+                options: [
+                    'One punctuation feature alone does not prove a purpose; you must check who the text is for and how features work together.',
+                    'Exclamation marks are only ever used in formal letters to head teachers.',
+                    'Persuasive texts never use punctuation.',
+                    'You should never mention punctuation in Cambridge exams.'
+                ],
+                correct: 0,
+                tip: 'Un signo de exclamación por sí solo puede estar en una carta informal o un cuento; para probar el propósito debes mirar cómo funciona en conjunto con todo el texto.'
+            },
+            {
+                level: 5, type: 'mcq', category: 'Sec 5: Letter Purpose',
+                extract: 'Dear Gran, Guess what? I\'ve finally learned to ride my bike without stabilisers!... Mum says we\'ll all come to visit at half-term so I can show you. I can\'t wait!',
+                question: 'To get full marks (2/2) on "Why has Zainab written this letter?", what two things must you include?',
+                options: [
+                    'Her main purpose (to share her exciting news about riding her bike) AND supporting evidence or her second purpose (arranging a visit to show Gran).',
+                    'Only the address "14 Orchard Road" and the date "Saturday 3 May".',
+                    'A list of all the contractions in the letter.',
+                    'A formal sign-off like "Yours faithfully".'
+                ],
+                correct: 0,
+                tip: 'Para obtener los 2 puntos debes mencionar el propósito principal (compartir la noticia de que aprendió a montar bici) y respaldarlo con evidencia o el segundo propósito (visitarla para mostrarle).'
+            },
+            {
+                level: 5, type: 'sequence', category: 'Sec 5: Persuasive Email',
+                extract: 'Dear Mr Ferreira, I am writing to ask whether our Basketball Club might use the sports hall on Wednesday lunchtimes. At present, we practise outdoors, which is impossible in wet weather. I appreciate that the hall is already busy, but we would be happy to set up and tidy away the equipment ourselves. I would be grateful if you could consider this request and let me know your decision by Friday.',
+                question: 'Order the 4 steps Daniela uses in her email from beginning to end (1 to 4):',
+                items: [
+                    'States her polite request to use the sports hall.',
+                    'Gives a clear reason (practising outdoors is impossible in wet weather).',
+                    'Acknowledges his difficulty ("already busy") and offers to tidy the equipment.',
+                    'Closes politely with a clear deadline ("by Friday").'
+                ],
+                tip: 'Sigue el orden del correo de Daniela: 1° Pide permiso, 2° Da la razón (lluvia), 3° Reconoce que está ocupado y ofrece ordenar el equipo, 4° Cierra cortésmente pidiendo respuesta para el viernes.'
+            },
+            {
+                level: 5, type: 'fill', category: 'Sec 6: Recurring Ideas',
+                extract: 'Page 26 Tips: "Recurring idea or _____: an object, belief or phrase that appears more than once. Ask: why does the writer keep returning to it?"',
+                question: 'Complete the literary term from Page 26 for a recurring object or idea (starts with M):',
+                answer: 'motif',
+                hintPattern: 'm _ t i f',
+                wordBank: ['motif', 'marker', 'metaphor', 'meaning'],
+                tip: 'En la página 26 ("Tips for overall comprehension"), un objeto o idea recurrente se llama "motif" (motivo literario).'
+            },
+            {
+                level: 5, type: 'mcq', category: 'Sec 6: Structural Link',
+                extract: 'Opening of 6.1: "Hugo\'s kite had been his grandfather\'s, and it had not left the shed for ten years." Ending of 6.1: "By evening, the kite was mended and hanging back in the shed, where it would wait, he thought, for next summer."',
+                question: 'How does the ending both echo AND change the opening sentence of "Grandfather\'s Kite"?',
+                options: [
+                    'It echoes the setting ("in the shed"), but changes the meaning because the kite is now waiting "for next summer" instead of being forgotten for ten years.',
+                    'It shows the kite is permanently broken and will stay in the shed for another ten years.',
+                    'It introduces a brand new shed in a different town.',
+                    'It shows Hugo prefers indoor video games over kites.'
+                ],
+                correct: 0,
+                tip: 'Para ganar los 2 puntos: 1) Conecta que la cometa vuelve al cobertizo ("shed"), y 2) explica la diferencia: ahora espera al próximo verano en vez de quedar olvidada 10 años.'
+            },
+            {
+                level: 5, type: 'scramble', category: 'Exam Readiness',
+                extract: 'Page 31 — Self-assessment checklist: "Before the exam I will..."',
+                question: 'Assemble the final 4-part golden pledge from Page 31 of the revision guide:',
+                words: ['read each question twice,', 'find clues,', 'quote exactly,', 'and explain every quotation.'],
+                tip: 'El recordatorio final de la página 31 dice: "read each question twice, find clues, quote exactly, and explain every quotation."'
+            },
+            {
+                level: 5, type: 'mcq', category: 'Master Synthesis',
+                extract: 'Final Boss Question — Combining all 6 Sections of the Cambridge Stage 8 Revision Guide.',
+                question: 'A 2-mark question asks: "Explain what the phrase \'her knuckles turned white\' suggests about Sofia." Which answer gets full marks (2/2)?',
+                options: [
+                    'It suggests Sofia is terrified and tense (1 mark), because she is gripping her towel with extreme force before entering the pool (1 mark).',
+                    'The writer uses an adjective to show her hands are white.',
+                    '"her knuckles turned white" (copied quotation with no explanation).',
+                    'Sofia is at the swimming pool on Tuesday.'
+                ],
+                correct: 0,
+                tip: '¡Última misión! Para obtener 2 de 2 necesitas la inferencia clara (está aterrada/tensa) + la explicación de cómo la pista ("apretar con fuerza") lo demuestra.'
+            }
+        ];
+
+        // ============================================================================
+        // PERSISTENT STATE PER MISSION (Supports Free Navigation & Photo Review!)
+        // ============================================================================
+        let currentIndex = 0;
+        let score = 0;
+        let streak = 0;
+        let missionStates = [];
+
+        function initMissionStates() {
+            missionStates = missions.map((m) => {
+                // Prepare shuffled pools once so navigating back/forth keeps consistent UI
+                let pool = [];
+                if (m.type === 'scramble') {
+                    const combined = [...m.words, ...(m.distractors || [])];
+                    pool = shuffleArray(combined.map((w, idx) => ({ id: idx, text: w })));
+                } else if (m.type === 'sequence') {
+                    pool = shuffleArray(m.items.map((item, idx) => ({ correctOrder: idx, text: item })));
+                }
+                return {
+                    attempts: 0,           // 0, 1, or 2
+                    status: 'pending',     // 'pending' | 'correct' | 'lost'
+                    showTip: false,
+                    userSelection: null,   // stores current working input or final locked answer
+                    pool: pool,
+                    selectedChips: []      // for scramble/sequence
+                };
+            });
+        }
+
+        function shuffleArray(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        // ============================================================================
+        // GAMIFICATION HELPERS (Pet Evolution & Rank Titles)
+        // ============================================================================
+        function updateGamificationHeader() {
+            document.getElementById('score-display').innerText = score;
+            document.getElementById('streak-count').innerText = streak;
+
+            const petEl = document.getElementById('pet-avatar');
+            const rankEl = document.getElementById('rank-title');
+
+            let pet = '🥚';
+            let rank = 'Novice Explorer';
+            if (score >= 42) { pet = '🐉'; rank = 'Cambridge Legend'; }
+            else if (score >= 30) { pet = '🦅'; rank = 'Master Detective'; }
+            else if (score >= 18) { pet = '🦉'; rank = 'Clever Scholar'; }
+            else if (score >= 7) { pet = '🐥'; rank = 'Rising Reader'; }
+
+            petEl.innerText = pet;
+            rankEl.innerText = rank;
+
+            // Check if all 50 missions are resolved (correct or lost)
+            const finishedCount = missionStates.filter(s => s.status !== 'pending').length;
+            const finishBtn = document.getElementById('finish-early-btn');
+            if (finishedCount === 50) {
+                finishBtn.classList.remove('hidden');
+            } else {
+                finishBtn.classList.add('hidden');
+            }
+        }
+
+        // ============================================================================
+        // RENDER CURRENT MISSION
+        // ============================================================================
+        function renderMission() {
+            const m = missions[currentIndex];
+            const st = missionStates[currentIndex];
+            const isLocked = st.status !== 'pending';
+
+            // Top bar indicators
+            document.getElementById('question-counter').innerText = currentIndex + 1;
+            document.getElementById('q-number-pill').innerText = `Q${currentIndex + 1}`;
+            document.getElementById('category-badge').innerText = m.category;
+            document.getElementById('progress-bar').style.width = `${((currentIndex + 1) / 50) * 100}%`;
+
+            // Challenge Type Badge
+            const typeBadge = document.getElementById('type-badge');
+            const typeLabels = {
+                classify: '🏷️ Skill Classifier',
+                scramble: '🧩 Sentence Builder',
+                fill: '⌨️ Word Complete',
+                sequence: '🔢 Time Sequencer',
+                mcq: '🎯 Deep Analysis'
+            };
+            typeBadge.innerText = typeLabels[m.type] || 'Challenge';
+
+            // Progressive Level Badge
+            const diffBadge = document.getElementById('difficulty-badge');
+            const lvlColors = {
+                1: 'bg-emerald-400 text-slate-950',
+                2: 'bg-sky-400 text-slate-950',
+                3: 'bg-amber-400 text-slate-950',
+                4: 'bg-orange-500 text-white',
+                5: 'bg-rose-500 text-white'
+            };
+            diffBadge.className = `text-xs font-extrabold px-2.5 py-1 rounded-full shadow-sm ${lvlColors[m.level]}`;
+            diffBadge.innerText = `Level ${m.level}`;
+
+            // Attempts / Status Indicator in Header
+            const attEl = document.getElementById('attempts-indicator');
+            const statusPill = document.getElementById('mission-status-pill');
+
+            if (st.status === 'correct') {
+                attEl.className = 'text-xs font-bold bg-emerald-500 text-white px-2.5 py-1 rounded-full';
+                attEl.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Completed (+1 pt)';
+                statusPill.className = 'px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-extrabold';
+                statusPill.innerHTML = '✅ Solved!';
+            } else if (st.status === 'lost') {
+                attEl.className = 'text-xs font-bold bg-rose-600 text-white px-2.5 py-1 rounded-full';
+                attEl.innerHTML = '<i class="fa-solid fa-camera mr-1"></i>0 Tries (Photo Mode)';
+                statusPill.className = 'px-3 py-1 rounded-full bg-rose-100 text-rose-800 font-extrabold';
+                statusPill.innerHTML = '📸 Point Lost — Ready for Photo';
+            } else if (st.attempts === 0) {
+                attEl.className = 'text-xs font-bold bg-emerald-500/20 border border-emerald-400 text-emerald-200 px-2.5 py-1 rounded-full';
+                attEl.innerHTML = '❤️❤️ 2 Tries';
+                statusPill.className = 'px-3 py-1 rounded-full bg-slate-100 text-slate-600 font-bold';
+                statusPill.innerHTML = 'In Progress (2 Tries Left)';
+            } else {
+                attEl.className = 'text-xs font-bold bg-amber-500/30 border border-amber-300 text-amber-200 px-2.5 py-1 rounded-full animate-pulse';
+                attEl.innerHTML = '❤️🖤 1 Try Left';
+                statusPill.className = 'px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-extrabold';
+                statusPill.innerHTML = '💡 Tip Unlocked (1 Try Left)';
+            }
+
+            // Extract & Question
+            document.getElementById('extract-text').innerHTML = `<span class="font-extrabold text-indigo-900 block mb-0.5"><i class="fa-solid fa-book-open mr-1.5"></i>Guide Reference:</span>${m.extract}`;
+            document.getElementById('question-text').innerText = m.question;
+
+            // Render Persistent Feedback / Spanish Tip / Photo Box on Left Column
+            renderFeedbackBanner(m, st);
+
+            // Render Interactive Workspace on Right Column
+            const workspace = document.getElementById('workspace-container');
+            const submitBtn = document.getElementById('submit-answer-btn');
+            workspace.innerHTML = '';
+            submitBtn.classList.add('hidden');
+
+            if (m.type === 'classify') {
+                renderClassifyWorkspace(m, st, workspace, isLocked);
+            } else if (m.type === 'mcq') {
+                renderMcqWorkspace(m, st, workspace, isLocked);
+            } else if (m.type === 'fill') {
+                renderFillWorkspace(m, st, workspace, submitBtn, isLocked);
+            } else if (m.type === 'scramble') {
+                renderScrambleWorkspace(m, st, workspace, submitBtn, isLocked);
+            } else if (m.type === 'sequence') {
+                renderSequenceWorkspace(m, st, workspace, submitBtn, isLocked);
+            }
+
+            // Prev / Next buttons state
+            document.getElementById('prev-btn').disabled = currentIndex === 0;
+            document.getElementById('next-btn').disabled = currentIndex === missions.length - 1;
+        }
+
+        // ============================================================================
+        // PERSISTENT FEEDBACK & PHOTO REVIEW BANNER
+        // ============================================================================
+        function renderFeedbackBanner(m, st) {
+            const banner = document.getElementById('feedback-banner');
+            if (st.status === 'pending' && !st.showTip) {
+                banner.classList.add('hidden');
+                return;
+            }
+            banner.classList.remove('hidden');
+
+            if (st.status === 'correct') {
+                banner.className = 'rounded-2xl p-3.5 border-2 bg-emerald-50 border-emerald-400 text-emerald-950 text-xs md:text-sm animate-pop mt-2';
+                banner.innerHTML = `
+                    <div class="font-black text-emerald-700 flex items-center gap-1.5 mb-1">
+                        <i class="fa-solid fa-circle-check text-base"></i> Excellent Work! (+1 Point)
+                    </div>
+                    <p class="text-emerald-800">${m.tip}</p>
+                `;
+            } else if (st.status === 'lost') {
+                const correctDisplay = getCorrectAnswerText(m);
+                banner.className = 'rounded-2xl p-3.5 border-2 bg-rose-50 border-rose-400 text-rose-950 text-xs md:text-sm animate-pop mt-2 shadow-sm';
+                banner.innerHTML = `
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-black text-rose-700 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-xmark text-base"></i> Point Lost (2 Mistakes)
+                        </span>
+                        <span class="bg-rose-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full">
+                            📸 Take Photo Here
+                        </span>
+                    </div>
+                    <p class="text-slate-700 mb-2"><strong>Explicación:</strong> ${m.tip}</p>
+                    <div class="bg-white p-2.5 rounded-xl border border-rose-200 text-emerald-900">
+                        <span class="font-extrabold text-emerald-700 block text-xs uppercase">Correct Answer:</span>
+                        <span class="font-bold">${correctDisplay}</span>
+                    </div>
+                `;
+            } else if (st.showTip) {
+                banner.className = 'rounded-2xl p-3.5 border-2 bg-amber-50 border-amber-400 text-amber-950 text-xs md:text-sm animate-pop mt-2 shadow-sm';
+                banner.innerHTML = `
+                    <div class="font-black text-amber-700 flex items-center gap-1.5 mb-1">
+                        <i class="fa-solid fa-lightbulb text-amber-500 text-base animate-bounce"></i> Pista en Español (Te queda 1 intento):
+                    </div>
+                    <p class="text-slate-800 font-medium">${m.tip}</p>
+                `;
+            }
+        }
+
+        function getCorrectAnswerText(m) {
+            if (m.type === 'classify') return m.categories[m.correct];
+            if (m.type === 'mcq') return m.options[m.correct];
+            if (m.type === 'fill') return m.answer;
+            if (m.type === 'scramble') return m.words.join(' ');
+            if (m.type === 'sequence') return m.items.map((it, idx) => `${idx + 1}. ${it}`).join(' | ');
+            return '';
+        }
+
+        // ============================================================================
+        // WORKSPACE 1: SKILL CLASSIFIER
+        // ============================================================================
+        function renderClassifyWorkspace(m, st, container, isLocked) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'grid grid-cols-1 gap-3 max-w-lg mx-auto';
+
+            m.categories.forEach((cat, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                const isSelected = st.userSelection === idx;
+                const isCorrectChoice = idx === m.correct;
+
+                let style = 'bg-white border-2 border-indigo-200 hover:border-indigo-500 hover:bg-indigo-50/60 text-slate-800';
+                if (isLocked) {
+                    if (isCorrectChoice) style = 'bg-emerald-50 border-2 border-emerald-500 text-emerald-900';
+                    else if (isSelected) style = 'bg-rose-50 border-2 border-rose-400 text-rose-800 opacity-75';
+                } else if (st.attempts === 1 && isSelected) {
+                    style = 'bg-rose-50 border-2 border-rose-300 text-rose-700 opacity-60 cursor-not-allowed';
+                    btn.disabled = true;
+                }
+
+                btn.className = `cursor-pointer p-4 rounded-2xl font-extrabold text-sm md:text-base transition-all shadow-sm flex items-center justify-between ${style}`;
+                btn.innerHTML = `
+                    <span class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-black">${idx + 1}</span>
+                        <span>${cat}</span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right text-slate-400"></i>
+                `;
+
+                if (!isLocked && !btn.disabled) {
+                    btn.addEventListener('click', () => {
+                        st.userSelection = idx;
+                        evaluateSubmission(idx === m.correct);
+                    });
+                }
+                wrapper.appendChild(btn);
+            });
+
+            container.appendChild(wrapper);
+        }
+
+        // ============================================================================
+        // WORKSPACE 2: DEEP ANALYSIS (MCQ)
+        // ============================================================================
+        function renderMcqWorkspace(m, st, container, isLocked) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'grid grid-cols-1 gap-2.5 max-w-xl mx-auto';
+
+            m.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                const isSelected = st.userSelection === idx;
+                const isCorrectChoice = idx === m.correct;
+
+                let style = 'bg-white border-2 border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 text-slate-700';
+                if (isLocked) {
+                    if (isCorrectChoice) style = 'bg-emerald-50 border-2 border-emerald-500 text-emerald-900 font-bold';
+                    else if (isSelected) style = 'bg-rose-50 border-2 border-rose-400 text-rose-800 opacity-75';
+                } else if (st.attempts === 1 && isSelected) {
+                    style = 'bg-rose-50 border-2 border-rose-300 text-rose-700 opacity-60 cursor-not-allowed';
+                    btn.disabled = true;
+                }
+
+                const letters = ['A', 'B', 'C', 'D'];
+                btn.className = `cursor-pointer w-full text-left p-3 md:p-3.5 rounded-xl font-semibold text-xs md:text-sm transition-all shadow-sm flex items-start gap-3 ${style}`;
+                btn.innerHTML = `
+                    <span class="w-6 h-6 rounded-lg bg-slate-100 text-slate-700 font-black text-xs flex items-center justify-center shrink-0 mt-0.5">${letters[idx]}</span>
+                    <span class="leading-snug">${opt}</span>
+                `;
+
+                if (!isLocked && !btn.disabled) {
+                    btn.addEventListener('click', () => {
+                        st.userSelection = idx;
+                        evaluateSubmission(idx === m.correct);
+                    });
+                }
+                wrapper.appendChild(btn);
+            });
+
+            container.appendChild(wrapper);
+        }
+
+        // ============================================================================
+        // WORKSPACE 3: WORD COMPLETION (FILL IN THE BLANK + WORD BANK)
+        // ============================================================================
+        function renderFillWorkspace(m, st, container, submitBtn, isLocked) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'max-w-lg mx-auto bg-white p-4 md:p-5 rounded-2xl border-2 border-fuchsia-200 shadow-sm space-y-4';
+
+            const currentVal = st.userSelection !== null ? st.userSelection : '';
+
+            wrapper.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-fuchsia-700">
+                        <i class="fa-solid fa-spell-check mr-1"></i>Letter Pattern Clue:
+                    </span>
+                    <span class="font-mono font-black text-sm md:text-base bg-fuchsia-50 text-fuchsia-900 px-3 py-1 rounded-lg border border-fuchsia-200 tracking-widest">
+                        ${m.hintPattern}
+                    </span>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Type the exact word OR tap a word chip below:</label>
+                    <input id="fill-input" type="text" value="${currentVal}" ${isLocked ? 'disabled' : ''}
+                        placeholder="Type or tap a word below..."
+                        class="w-full px-4 py-2.5 text-base md:text-lg font-extrabold text-indigo-950 bg-slate-50 border-2 border-slate-300 rounded-xl focus:outline-none focus:border-fuchsia-500 transition" />
+                </div>
+                <div>
+                    <span class="block text-[11px] font-bold text-slate-400 uppercase mb-1.5">Quick Word Bank (Tap to fill):</span>
+                    <div id="word-bank-chips" class="flex flex-wrap gap-2"></div>
+                </div>
+            `;
+
+            container.appendChild(wrapper);
+
+            const inputEl = wrapper.querySelector('#fill-input');
+            const bankContainer = wrapper.querySelector('#word-bank-chips');
+
+            m.wordBank.forEach((word) => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.disabled = isLocked;
+                chip.className = 'cursor-pointer px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 rounded-xl font-bold text-xs md:text-sm transition active:scale-95';
+                chip.innerText = word;
+                chip.addEventListener('click', () => {
+                    playClickSound();
+                    inputEl.value = word;
+                    st.userSelection = word;
+                });
+                bankContainer.appendChild(chip);
+            });
+
+            if (!isLocked) {
+                submitBtn.classList.remove('hidden');
+                submitBtn.onclick = () => {
+                    const val = inputEl.value.trim();
+                    if (!val) return;
+                    st.userSelection = val;
+                    const isCorrect = val.toLowerCase() === m.answer.toLowerCase();
+                    evaluateSubmission(isCorrect);
+                };
+                inputEl.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') submitBtn.click();
+                });
+            }
+        }
+
+        // ============================================================================
+        // WORKSPACE 4: SENTENCE / FORMULA BUILDER (SCRAMBLE)
+        // ============================================================================
+        function renderScrambleWorkspace(m, st, container, submitBtn, isLocked) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'max-w-xl mx-auto space-y-3';
+
+            // Target Drop Zone
+            const dropZone = document.createElement('div');
+            dropZone.className = 'min-h-[68px] p-3 rounded-2xl bg-white border-2 border-dashed border-indigo-300 flex flex-wrap items-center gap-2 shadow-inner';
+
+            if (st.selectedChips.length === 0) {
+                dropZone.innerHTML = '<span class="text-xs text-slate-400 font-semibold mx-auto"><i class="fa-solid fa-hand-pointer mr-1.5"></i>Tap the word blocks below in order to build your answer here...</span>';
+            } else {
+                st.selectedChips.forEach((chipObj, idx) => {
+                    const pill = document.createElement('button');
+                    pill.type = 'button';
+                    pill.disabled = isLocked;
+                    pill.className = 'cursor-pointer px-3 py-1.5 bg-indigo-600 hover:bg-rose-500 text-white font-bold text-xs md:text-sm rounded-xl shadow transition flex items-center gap-1.5';
+                    pill.innerHTML = `<span>${chipObj.text}</span><i class="fa-solid fa-xmark text-[10px] opacity-75"></i>`;
+                    pill.addEventListener('click', () => {
+                        playClickSound();
+                        st.selectedChips.splice(idx, 1);
+                        renderMission();
+                    });
+                    dropZone.appendChild(pill);
+                });
+            }
+
+            // Available Word Pool
+            const poolBox = document.createElement('div');
+            poolBox.className = 'p-3 rounded-2xl bg-slate-100 border border-slate-200 flex flex-wrap gap-2 justify-center';
+
+            st.pool.forEach((chipObj) => {
+                const alreadyUsed = st.selectedChips.some(c => c.id === chipObj.id);
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.disabled = isLocked || alreadyUsed;
+                btn.className = alreadyUsed
+                    ? 'px-3 py-1.5 bg-slate-200 text-slate-400 font-bold text-xs md:text-sm rounded-xl border border-slate-300 opacity-40 cursor-not-allowed'
+                    : 'cursor-pointer px-3 py-1.5 bg-white hover:bg-indigo-50 text-slate-800 font-bold text-xs md:text-sm rounded-xl border-2 border-slate-300 hover:border-indigo-400 shadow-sm transition active:scale-95';
+                btn.innerText = chipObj.text;
+                btn.addEventListener('click', () => {
+                    playClickSound();
+                    st.selectedChips.push(chipObj);
+                    renderMission();
+                });
+                poolBox.appendChild(btn);
+            });
+
+            // Clear button
+            const controlsRow = document.createElement('div');
+            controlsRow.className = 'flex justify-between items-center text-xs text-slate-500 px-1';
+            controlsRow.innerHTML = `<span>Tap a purple block to remove it.</span>`;
+            if (!isLocked && st.selectedChips.length > 0) {
+                const clearBtn = document.createElement('button');
+                clearBtn.type = 'button';
+                clearBtn.className = 'cursor-pointer text-rose-600 font-bold hover:underline';
+                clearBtn.innerHTML = '<i class="fa-solid fa-rotate-left mr-1"></i>Reset Words';
+                clearBtn.onclick = () => {
+                    st.selectedChips = [];
+                    renderMission();
+                };
+                controlsRow.appendChild(clearBtn);
+            }
+
+            wrapper.appendChild(dropZone);
+            wrapper.appendChild(controlsRow);
+            wrapper.appendChild(poolBox);
+            container.appendChild(wrapper);
+
+            if (!isLocked) {
+                submitBtn.classList.remove('hidden');
+                submitBtn.onclick = () => {
+                    if (st.selectedChips.length === 0) return;
+                    const builtSentence = st.selectedChips.map(c => c.text).join(' ');
+                    const targetSentence = m.words.join(' ');
+                    evaluateSubmission(builtSentence === targetSentence);
+                };
+            }
+        }
+
+        // ============================================================================
+        // WORKSPACE 5: CHRONOLOGICAL & STRATEGY SEQUENCER
+        // ============================================================================
+        function renderSequenceWorkspace(m, st, container, submitBtn, isLocked) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'max-w-xl mx-auto space-y-2.5';
+
+            const instruction = document.createElement('div');
+            instruction.className = 'flex items-center justify-between text-xs text-slate-600 font-bold px-1';
+            instruction.innerHTML = `
+                <span><i class="fa-solid fa-arrow-down-1-9 text-amber-600 mr-1"></i>Tap events in order (1 to ${m.items.length}):</span>
+                ${!isLocked && st.selectedChips.length > 0 ? '<button id="reset-seq" type="button" class="text-rose-600 hover:underline"><i class="fa-solid fa-rotate-left mr-1"></i>Reset Order</button>' : ''}
+            `;
+            wrapper.appendChild(instruction);
+
+            st.pool.forEach((itemObj) => {
+                const orderIdx = st.selectedChips.findIndex(c => c.correctOrder === itemObj.correctOrder);
+                const isNumbered = orderIdx !== -1;
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.disabled = isLocked;
+
+                let style = isNumbered
+                    ? 'bg-indigo-50 border-2 border-indigo-500 text-indigo-950'
+                    : 'bg-white border-2 border-slate-200 hover:border-amber-400 text-slate-700';
+
+                if (isLocked) {
+                    style = 'bg-emerald-50 border-2 border-emerald-500 text-emerald-950';
+                }
+
+                btn.className = `cursor-pointer w-full text-left p-2.5 md:p-3 rounded-xl font-semibold text-xs md:text-sm transition-all shadow-sm flex items-center gap-3 ${style}`;
+                const badgeNum = isLocked ? (itemObj.correctOrder + 1) : (isNumbered ? orderIdx + 1 : '?');
+                const badgeStyle = (isNumbered || isLocked)
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-slate-200 text-slate-500';
+
+                btn.innerHTML = `
+                    <span class="w-7 h-7 rounded-lg font-black text-xs flex items-center justify-center shrink-0 ${badgeStyle}">
+                        ${badgeNum}
+                    </span>
+                    <span class="leading-snug">${itemObj.text}</span>
+                `;
+
+                btn.addEventListener('click', () => {
+                    playClickSound();
+                    if (isNumbered) {
+                        st.selectedChips.splice(orderIdx, 1);
+                    } else {
+                        st.selectedChips.push(itemObj);
+                    }
+                    renderMission();
+                });
+
+                wrapper.appendChild(btn);
+            });
+
+            container.appendChild(wrapper);
+
+            const resetBtn = wrapper.querySelector('#reset-seq');
+            if (resetBtn) {
+                resetBtn.onclick = () => {
+                    st.selectedChips = [];
+                    renderMission();
+                };
+            }
+
+            if (!isLocked) {
+                submitBtn.classList.remove('hidden');
+                submitBtn.onclick = () => {
+                    if (st.selectedChips.length < m.items.length) {
+                        // Shake workspace gently if not all items numbered
+                        container.classList.add('animate-shake');
+                        setTimeout(() => container.classList.remove('animate-shake'), 400);
+                        return;
+                    }
+                    const isAllInOrder = st.selectedChips.every((item, idx) => item.correctOrder === idx);
+                    evaluateSubmission(isAllInOrder);
+                };
+            }
+        }
+
+        // ============================================================================
+        // EVALUATION LOGIC (2-Attempt Rule + Spanish Tip + Photo Lock on 2nd Error)
+        // ============================================================================
+        function evaluateSubmission(isCorrect) {
+            const st = missionStates[currentIndex];
+            if (st.status !== 'pending') return;
+
+            if (isCorrect) {
+                st.status = 'correct';
+                score++;
+                streak++;
+                playCorrectSound();
+                updateGamificationHeader();
+                renderMission();
+            } else {
+                st.attempts++;
+                streak = 0;
+
+                if (st.attempts === 1) {
+                    // 1st Mistake: Show Spanish Tip on screen, keep interactive for 2nd try
+                    st.showTip = true;
+                    // Reset scramble/sequence chips if wrong so student can rebuild cleanly
+                    const m = missions[currentIndex];
+                    if (m.type === 'scramble' || m.type === 'sequence') {
+                        st.selectedChips = [];
+                    }
+                    playTipSound();
+                    updateGamificationHeader();
+                    renderMission();
+                } else {
+                    // 2nd Mistake: Point lost! Lock question & display Photo Review Banner
+                    st.status = 'lost';
+                    playLostSound();
+                    updateGamificationHeader();
+                    renderMission();
+                }
+            }
+        }
+
+        // ============================================================================
+        // NAVIGATION & GAME LIFECYCLE
+        // ============================================================================
+        function startGame() {
+            getAudioContext();
+            playCorrectSound();
+            score = 0;
+            streak = 0;
+            currentIndex = 0;
+            initMissionStates();
+            updateGamificationHeader();
+
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('flex');
+
+            const gameUI = document.getElementById('game-ui');
+            gameUI.classList.remove('hidden');
+            gameUI.classList.add('flex');
+
+            renderMission();
+        }
+
+        function showEndScreen() {
+            const endScreen = document.getElementById('end-screen');
+            endScreen.classList.remove('hidden');
+            endScreen.classList.add('flex');
+
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('final-pet').innerText = document.getElementById('pet-avatar').innerText;
+            document.getElementById('final-rank-badge').innerText = document.getElementById('rank-title').innerText;
+
+            const msg = document.getElementById('final-message');
+            if (score >= 45) {
+                msg.innerText = 'Outstanding! You have mastered every skill in the Cambridge Stage 8 Guide!';
+            } else if (score >= 35) {
+                msg.innerText = 'Great job! You are well prepared for your Cambridge reading assessment!';
+            } else {
+                msg.innerText = 'Well done for completing all 50 missions! Use the "Review Missions" button to check any red questions.';
+            }
+        }
+
+        document.getElementById('start-btn').addEventListener('click', startGame);
+
+        document.getElementById('prev-btn').addEventListener('click', () => {
+            if (currentIndex > 0) {
+                playClickSound();
+                currentIndex--;
+                renderMission();
+            }
+        });
+
+        document.getElementById('next-btn').addEventListener('click', () => {
+            if (currentIndex < missions.length - 1) {
+                playClickSound();
+                currentIndex++;
+                renderMission();
+            }
+        });
+
+        document.getElementById('finish-early-btn').addEventListener('click', showEndScreen);
+
+        document.getElementById('review-missions-btn').addEventListener('click', () => {
+            document.getElementById('end-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('flex');
+            renderMission();
+        });
+
+        document.getElementById('restart-btn').addEventListener('click', startGame);
+    </script>
+</body>
+</html>
