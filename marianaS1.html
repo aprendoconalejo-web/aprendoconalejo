@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cambridge English Revision - Gamified Practice</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js for Audio -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/1.4.8/Tone.js"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .aspect-16-9 { aspect-ratio: 16 / 9; }
+        
+        /* Custom scrollbar for question container if needed */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+        }
+
+        .animate-bounce-short {
+            animation: bounceShort 0.5s ease-in-out 1;
+        }
+
+        @keyframes bounceShort {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .animate-shake {
+            animation: shake 0.4s ease-in-out 1;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-900 via-indigo-800 to-purple-900 min-h-screen flex items-center justify-center p-2 md:p-6 select-none text-gray-800">
+
+    <!-- Game Container (16:9 Aspect Ratio) -->
+    <div id="game-container" class="w-full max-w-6xl aspect-16-9 bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col relative border-4 border-indigo-300">
+        
+        <!-- ================= START SCREEN ================= -->
+        <div id="start-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-indigo-50 to-white z-20 p-8 text-center">
+            <div class="bg-indigo-600 text-white p-4 rounded-full mb-6 shadow-lg animate-bounce">
+                <i class="fa-solid fa-graduation-cap text-5xl"></i>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-indigo-900 mb-4 tracking-tight">Cambridge Prep 8</h1>
+            <p class="text-lg md:text-xl text-gray-600 mb-2 max-w-2xl">
+                Demuestra tu dominio de la guía de estudio "Seventh Cumulative Test Practice".
+            </p>
+            <div class="bg-indigo-100 rounded-xl p-4 mb-8 max-w-xl text-left text-sm md:text-base text-indigo-800 space-y-2 border border-indigo-200">
+                <p><i class="fa-solid fa-check-circle mr-2"></i><strong>50 Preguntas</strong> basadas en las 6 secciones de la guía.</p>
+                <p><i class="fa-solid fa-heart-crack mr-2"></i><strong>Mecánica:</strong> Si fallas una vez, recibes una pista. Si fallas dos veces, pierdes el punto y pasas a la siguiente.</p>
+                <p><i class="fa-solid fa-volume-high mr-2"></i>Asegúrate de tener el volumen encendido.</p>
+            </div>
+            <button onclick="startGame()" class="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white text-xl font-bold rounded-2xl shadow-[0_6px_0_#4338ca] active:shadow-[0_0px_0_#4338ca] active:translate-y-[6px] transition-all">
+                ¡Empezar Actividad!
+            </button>
+        </div>
+
+        <!-- ================= GAME UI ================= -->
+        <div id="game-ui" class="hidden flex-col h-full w-full bg-slate-50">
+            
+            <!-- Header -->
+            <header class="h-16 md:h-20 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-8 shrink-0">
+                <div class="flex items-center space-x-4 w-1/3">
+                    <div class="text-indigo-600 font-bold text-lg md:text-2xl">
+                        <i class="fa-solid fa-star text-yellow-400 mr-1 drop-shadow-sm"></i>
+                        <span id="score-display">0</span> pts
+                    </div>
+                </div>
+                
+                <div class="w-1/3 flex flex-col items-center">
+                    <span id="category-badge" class="text-xs md:text-sm font-semibold bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full mb-1">Categoría</span>
+                    <div class="text-sm font-bold text-gray-500">Pregunta <span id="question-counter">1</span>/50</div>
+                </div>
+
+                <div class="w-1/3 flex justify-end">
+                    <span id="difficulty-badge" class="text-xs md:text-sm font-semibold px-3 py-1 rounded-full">Fácil</span>
+                </div>
+            </header>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-gray-200 h-1.5 shrink-0">
+                <div id="progress-bar" class="bg-indigo-500 h-1.5 transition-all duration-300 w-0"></div>
+            </div>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+                
+                <!-- Left: Question & Extract -->
+                <div class="w-full md:w-1/2 p-4 md:p-8 flex flex-col justify-center overflow-y-auto custom-scroll relative">
+                    <h2 id="question-text" class="text-xl md:text-2xl font-bold text-slate-800 mb-6 leading-tight">Pregunta aquí</h2>
+                    
+                    <!-- Extract Box (Hidden if empty) -->
+                    <div id="extract-container" class="hidden bg-slate-100 border-l-4 border-indigo-400 p-4 rounded-r-lg text-slate-700 text-sm md:text-base italic mb-4">
+                        <p id="extract-text">Extracto aquí...</p>
+                    </div>
+                </div>
+
+                <!-- Right: Options -->
+                <div class="w-full md:w-1/2 p-4 md:p-8 flex flex-col justify-center bg-slate-100/50">
+                    <div id="options-container" class="grid grid-cols-1 gap-3 md:gap-4 w-full max-w-md mx-auto">
+                        <!-- Options generated by JS -->
+                    </div>
+                </div>
+                
+            </main>
+        </div>
+
+        <!-- ================= MODALS & OVERLAYS ================= -->
+        
+        <!-- Tip / Hint Modal (1st Mistake) -->
+        <div id="tip-modal" class="hidden absolute inset-0 bg-black/40 z-30 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+            <div class="bg-white rounded-3xl shadow-2xl p-6 md:p-8 max-w-lg w-full text-center border-t-8 border-yellow-400 transform scale-95 transition-transform" id="tip-modal-content">
+                <div class="text-yellow-500 text-5xl mb-4"><i class="fa-solid fa-lightbulb animate-pulse"></i></div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">¡Cuidado! (Intento 1 fallido)</h3>
+                <p id="tip-text" class="text-gray-600 mb-6 text-lg bg-yellow-50 p-4 rounded-xl border border-yellow-100">Aquí va la pista...</p>
+                <button onclick="closeTip()" class="px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-white font-bold rounded-xl w-full shadow-[0_4px_0_#ca8a04] active:translate-y-[4px] active:shadow-none transition-all">
+                    Reintentar
+                </button>
+            </div>
+        </div>
+
+        <!-- Lost Point Modal (2nd Mistake) -->
+        <div id="lost-modal" class="hidden absolute inset-0 bg-black/50 z-30 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+            <div class="bg-white rounded-3xl shadow-2xl p-6 md:p-8 max-w-lg w-full text-center border-t-8 border-red-500">
+                <div class="text-red-500 text-5xl mb-4"><i class="fa-solid fa-circle-xmark"></i></div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">¡Punto Perdido!</h3>
+                <p class="text-gray-600 mb-6 text-lg">Has cometido 2 errores en esta pregunta.</p>
+                <button onclick="nextQuestion()" class="px-6 py-3 bg-red-500 hover:bg-red-400 text-white font-bold rounded-xl w-full shadow-[0_4px_0_#b91c1c] active:translate-y-[4px] active:shadow-none transition-all">
+                    Siguiente Pregunta <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Correct Overlay -->
+        <div id="correct-overlay" class="hidden absolute inset-0 bg-green-500/90 z-40 flex flex-col items-center justify-center text-white backdrop-blur-sm">
+            <i class="fa-solid fa-check-circle text-7xl md:text-9xl mb-4 animate-bounce-short"></i>
+            <h2 class="text-4xl md:text-5xl font-extrabold shadow-sm">¡Correcto!</h2>
+            <p class="mt-4 text-xl opacity-90">+1 Punto</p>
+        </div>
+
+        <!-- ================= END SCREEN ================= -->
+        <div id="end-screen" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-indigo-900 to-purple-900 z-50 p-8 text-center text-white">
+            <i class="fa-solid fa-trophy text-7xl text-yellow-400 mb-6 animate-bounce"></i>
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-2">¡Actividad Completada!</h1>
+            <p class="text-xl md:text-2xl text-indigo-200 mb-8">Has finalizado las 50 preguntas.</p>
+            
+            <div class="bg-white/10 backdrop-blur-md rounded-3xl p-8 mb-8 border border-white/20">
+                <div class="text-gray-300 text-lg uppercase tracking-widest mb-2 font-semibold">Tu Puntaje Final</div>
+                <div class="text-7xl font-black text-yellow-400 drop-shadow-lg"><span id="final-score">0</span><span class="text-3xl text-gray-300">/50</span></div>
+                <p id="final-message" class="mt-4 text-lg text-indigo-100 font-medium">Excelente trabajo.</p>
+            </div>
+
+            <button onclick="location.reload()" class="px-8 py-4 bg-indigo-500 hover:bg-indigo-400 text-white text-xl font-bold rounded-2xl shadow-[0_6px_0_#3730a3] active:shadow-[0_0px_0_#3730a3] active:translate-y-[6px] transition-all">
+                <i class="fa-solid fa-rotate-right mr-2"></i> Volver a Jugar
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // --- AUDIO SETUP (Tone.js) ---
+        let synth;
+        
+        async function initAudio() {
+            if (!synth) {
+                await Tone.start();
+                synth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "sine" },
+                    envelope: { attack: 0.05, decay: 0.1, sustain: 0.3, release: 1 }
+                }).toDestination();
+                synth.volume.value = -5;
+            }
+        }
+
+        function playCorrectSound() {
+            if(!synth) return;
+            const now = Tone.now();
+            synth.triggerAttackRelease(["C5", "E5", "G5"], "8n", now);
+        }
+
+        function playWrongSound() {
+            if(!synth) return;
+            const now = Tone.now();
+            synth.triggerAttackRelease(["C3", "D#3"], "8n", now);
+        }
+
+        function playTipSound() {
+            if(!synth) return;
+            const now = Tone.now();
+            synth.triggerAttackRelease(["G4", "B4"], "8n", now);
+        }
+
+        function playWinSound() {
+            if(!synth) return;
+            const now = Tone.now();
+            synth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "2n", now);
+        }
+
+        // --- DATABASE OF 50 QUESTIONS ---
+        const allQuestions = [
+            // Strategy Basics
+            { text: "In the 6-step strategy, what is the FIRST thing you should underline in the question?", options: ["The relevant paragraph", "The command word and number of marks", "The character's name", "The time markers"], correct: 1, extract: "My six-step strategy for every question: 1. Read the question carefully. Underline the command word (give, explain, suggest, quote) and the number of marks.", tip: "Look at Step 1 of the strategy.", category: "Strategy", difficulty: "Fácil" },
+            { text: "What is Step 3 of the reading strategy?", options: ["Select the most relevant evidence", "Check that the answer responds", "Find clues in the text", "Explain what the evidence tells the reader"], correct: 2, extract: "3. Find clues in the text. Look for actions, descriptions, word choices and punctuation.", tip: "Step 3 involves looking for specific things like actions and word choices.", category: "Strategy", difficulty: "Media" },
+            { text: "According to the guide, what does 'Finding information' mean?", options: ["Locating something that is explicitly stated", "Using clues to understand hidden meanings", "Saying how evidence supports an answer", "Selecting exact words from the text"], correct: 0, extract: "Finding information: Locating something that is explicitly stated.", tip: "It is the opposite of making an inference.", category: "Strategy", difficulty: "Fácil" },
+            { text: "Which of the following is an example of an inference based on the phrase 'Leila zipped her coat to her chin and stamped her feet'?", options: ["Leila zipped her coat.", "It is cold outside.", "She is trying to keep warm.", "Leila stamped her feet."], correct: 1, extract: "Example of inference from: 'Leila zipped her coat...': It is cold outside.", tip: "An inference is something not directly stated.", category: "Strategy", difficulty: "Media" },
+            { text: "What is the primary purpose of 'Explaining evidence'?", options: ["To locate explicitly stated facts.", "To copy a quotation exactly.", "To say how the evidence supports your answer.", "To underline the command word."], correct: 2, extract: "Explaining evidence: Saying how the evidence supports your answer.", tip: "It links your reasoning to the text you selected.", category: "Strategy", difficulty: "Media" },
+            
+            // Section 1: Inference
+            { text: "What is an explicit fact?", options: ["Something you work out from clues.", "Something the writer states directly.", "A wild guess without evidence.", "A feeling a character hides."], correct: 1, extract: "Explicit fact: Something the writer states directly.", tip: "The prefix 'ex' means out; it's right out there in the open.", category: "Inference", difficulty: "Fácil" },
+            { text: "What is the Inference Formula given in Section 1?", options: ["Quotation + Explanation = Fact", "Clue from the text + my reasoning = inference", "Action + Punctuation = Context", "Command word + marks = strategy"], correct: 1, extract: "Inference formula: Clue from the text + my reasoning = inference", tip: "You need text evidence plus your own brain power.", category: "Inference", difficulty: "Fácil" },
+            { text: "In the 'Amara' extract, what does the detail 'kept glancing at the road' suggest?", options: ["She is waiting for a bus.", "She is angry at the teacher.", "She is hoping to see someone coming.", "She wants to cross the road."], correct: 2, extract: "The detail 'kept glancing at the road' suggests that she is hoping to see someone coming.", tip: "Why would someone repeatedly look at a road after school?", category: "Inference", difficulty: "Media" },
+            { text: "In 'Amara', what happens to her when a car drives past and it is not the right one?", options: ["She shouts", "She runs after it", "She sagged again", "She waves"], correct: 2, extract: "Every time a car appeared, she straightened up - then sagged again as it drove past.", tip: "Her hope rises and then falls. What physical action matches falling hope?", category: "Inference", difficulty: "Media" },
+            { text: "How is Amara feeling overall in the extract?", options: ["Excited and joyful", "Anxious and increasingly disappointed", "Bored and tired", "Angry and hostile"], correct: 1, extract: "Model answer: Amara is anxious and increasingly disappointed because she is waiting for someone who has not arrived.", tip: "She keeps sagging every time a car passes.", category: "Inference", difficulty: "Difícil" },
+            { text: "In 'The New Boy', what detail proves Tomás is new to the class?", options: ["He kept his eyes on the clock.", "Twenty heads turned towards him.", "He walked slowly.", "He answered the teacher loudly."], correct: 1, extract: "Tomás pushed open the classroom door... Twenty heads turned towards him, then twenty heads turned away.", tip: "How do students react when an unfamiliar face enters?", category: "Inference", difficulty: "Media" },
+            { text: "Which statement is an explicit fact in 'The New Boy'?", options: ["Tomás is nervous.", "Tomás wants to go home.", "The teacher said Tomás's name.", "Tomás does not like being noticed."], correct: 2, extract: "Fact - stated directly: 'When the teacher said his name...'", tip: "Which one can you point to exactly in the text?", category: "Inference", difficulty: "Media" },
+            { text: "In 'The Silent Kitchen', which detail suggests nobody has been living there?", options: ["The kitchen smelled of cinnamon.", "It left a clean line in the dust.", "Lucía put down her suitcase.", "She ran a finger along the table."], correct: 1, extract: "It left a clean line in the dust - dust has built up because nobody has cleaned.", tip: "Look for signs of neglect over time.", category: "Inference", difficulty: "Difícil" },
+            { text: "What does the unopened letter beside folded glasses suggest about Lucía's grandfather?", options: ["He was bored of reading.", "He left suddenly or unexpectedly.", "He planned a long vacation.", "He disliked getting mail."], correct: 1, extract: "He has left behind his reading glasses, which he would need to read, and he has not even opened his letter, so he probably did not plan to be away for long.", tip: "People usually don't leave their glasses and mail if they plan a trip.", category: "Inference", difficulty: "Difícil" },
+            { text: "Why is copying a quotation without saying what it shows a 'Common Mistake'?", options: ["Because quotations are always wrong.", "Because it takes too much time.", "Because a quotation is evidence, not an explanation.", "Because you should only guess."], correct: 2, extract: "Common mistake: copying a quotation without saying what it shows. How to avoid it: Always link your idea to a detail.", tip: "Evidence needs reasoning to become an inference.", category: "Inference", difficulty: "Media" },
+            
+            // Section 2: Context Clues
+            { text: "What does 'context' mean when working out unfamiliar words?", options: ["The history of the word", "The words, sentences and ideas around a word", "The spelling rules", "The punctuation used"], correct: 1, extract: "Context means the words, sentences and ideas around a word.", tip: "It's the environment in which the word lives.", category: "Context Clues", difficulty: "Fácil" },
+            { text: "Which of these is a 'contrast' clue?", options: ["such as", "for example", "but", "because"], correct: 2, extract: "Contrast: 'But' signals the opposite: agitated = restless or upset.", tip: "It shows a difference or opposite direction.", category: "Context Clues", difficulty: "Fácil" },
+            { text: "In the 'Fragile bridge' example, what does 'fragile' mean?", options: ["Old and beautiful", "Weak and easily broken", "Loud and noisy", "Strong and sturdy"], correct: 1, extract: "'Fragile' means weak and easily broken. Clue: 'only one villager at a time dared to cross it'.", tip: "If only one person can cross, it can't hold much weight.", category: "Context Clues", difficulty: "Media" },
+            { text: "What is a common mistake when guessing a word's meaning?", options: ["Reading the whole sentence", "Choosing the first meaning you know without checking if it makes sense", "Replacing the word with a prediction", "Looking for contrast words"], correct: 1, extract: "Common mistake: Choosing the first meaning you know... without checking the sentence.", tip: "Many words have multiple meanings (like 'bark').", category: "Context Clues", difficulty: "Media" },
+            { text: "In 'The Quiet Harbour', what word means 'very small in amount'?", options: ["hardy", "meagre", "weathered", "shrugged"], correct: 1, extract: "The catch was meagre: only a few silver fish flapped in the bottom...", tip: "Look for the word explained by 'only a few silver fish'.", category: "Context Clues", difficulty: "Media" },
+            { text: "What does the phrase 'a lean season' mean in 'The Quiet Harbour'?", options: ["A time when fishermen eat a lot of meat", "A period when it rains a lot", "A period when there is little to catch or earn", "A time of great wealth"], correct: 2, extract: "It means a period when there is little to catch or earn. Clues are 'only a few silver fish' and 'far fewer'.", tip: "It is the opposite of 'plenty'.", category: "Context Clues", difficulty: "Difícil" },
+            { text: "In 'Garden Club Update', what does 'turning up' mean?", options: ["Rotating something", "Making something louder", "Arriving or attending", "Discovering something while digging"], correct: 2, extract: "Thank you for turning up on Saturday... means arriving or attending.", tip: "Mrs Alvarez is thanking them for coming.", category: "Context Clues", difficulty: "Fácil" },
+            { text: "What does 'light' mean in the phrase 'the soil is now light'?", options: ["Bright", "Pale in colour", "Loose and easy to dig", "Low in calories"], correct: 2, extract: "The soil was hard to dig earlier ('stubborn'); now it is 'ready for planting', so it is loose and no longer heavy.", tip: "Think about the physical texture of soil after digging.", category: "Context Clues", difficulty: "Media" },
+            { text: "Which word in the Garden Club email tells the reader that the roots were difficult to remove?", options: ["cleared", "stubborn", "ready", "spare"], correct: 1, extract: "...though the roots were stubborn and some of them ran deep.", tip: "This word usually describes a person who refuses to change their mind.", category: "Context Clues", difficulty: "Media" },
+            { text: "What does 'keep Saturday free' mean in the email context?", options: ["Don't pay for Saturday", "Don't arrange anything else", "Run freely on Saturday", "Take a day off from the club"], correct: 1, extract: "It means 'do not make any other plans for Saturday'.", tip: "She says 'Our next job is to plant the beans, so...'", category: "Context Clues", difficulty: "Media" },
+            
+            // Section 3: Language for Effect
+            { text: "Why do writers use specific language and punctuation?", options: ["To increase word count", "To make readers feel or imagine something", "To confuse the reader", "To state explicit facts only"], correct: 1, extract: "Writers choose words and punctuation carefully to make readers feel or imagine something.", tip: "It's all about the impact on the audience.", category: "Language for Effect", difficulty: "Fácil" },
+            { text: "What must you do to earn marks in a 'Language for effect' question?", options: ["Name the technique (like 'simile') without explanation", "Copy a whole sentence", "Explain the meaning and the impact on the reader", "Make a wild guess"], correct: 2, extract: "Naming a technique earns no marks on its own: you must explain the meaning and the impact.", tip: "You need to answer 'why' it is powerful.", category: "Language for Effect", difficulty: "Media" },
+            { text: "What is the formula for answering a language effect question?", options: ["Writer's choice + meaning + effect on the reader", "Simile + Metaphor + Personification", "Explicit Fact + Inference", "Quotation + Punctuation"], correct: 0, extract: "Response structure: Writer's choice + meaning or implication + effect on the reader", tip: "You need what they chose, what it implies, and how it makes us feel.", category: "Language for Effect", difficulty: "Media" },
+            { text: "In the sentence 'The wind whispered at the window', what is the effect?", options: ["Creates a loud, noisy mood", "Creates a mysterious mood", "Makes the reader laugh", "Builds extreme terror"], correct: 1, extract: "Wind has a secretive, living quality. Effect: Creates a mysterious mood.", tip: "Whispering is quiet and secret.", category: "Language for Effect", difficulty: "Media" },
+            { text: "In 'The Lake at Dawn', what is the effect of the simile 'like a soft blanket'?", options: ["It suggests the mist is heavy and suffocating.", "It makes the reader imagine a cosy, safe, and quiet scene.", "It shows the water is freezing cold.", "It implies the duck is sleeping."], correct: 1, extract: "The simile suggests that the mist is gentle, thick and protective... makes the reader imagine a cosy, safe and quiet scene.", tip: "Blankets are usually associated with comfort and warmth.", category: "Language for Effect", difficulty: "Difícil" },
+            { text: "What does the verb 'crept' suggest about the sunlight in 'The Lake at Dawn'?", options: ["It moves quickly and aggressively.", "It is annoying and bright.", "It moves slowly and quietly.", "It is hot and burning."], correct: 2, extract: "'Crept' suggests that the sunlight moves slowly and quietly, as though it does not want to disturb anything.", tip: "Think about how a person creeps around a sleeping baby.", category: "Language for Effect", difficulty: "Media" },
+            { text: "In 'The Dark Corridor', what effect does the repetition 'silent. Too silent.' create?", options: ["It shows Jamal is relaxed.", "It emphasizes that the silence is not natural and suggests danger.", "It proves there is no one else there.", "It makes the reader feel bored."], correct: 1, extract: "The repetition... emphasises that the silence is not natural and suggests that something is wrong. This makes the reader feel uneasy.", tip: "Usually, when things are 'too' anything, trouble is coming.", category: "Language for Effect", difficulty: "Difícil" },
+            { text: "What does the ellipsis (...) after 'groaned open' suggest?", options: ["The story is over.", "A pause that builds suspense and uncertainty.", "Jamal is falling asleep.", "The door closed quickly."], correct: 1, extract: "The ellipsis creates a pause in which Jamal waits to see what will appear. This builds suspense.", tip: "Those three little dots make you hold your breath.", category: "Language for Effect", difficulty: "Media" },
+            { text: "Why use the one-word sentence 'Nothing.' in 'The Dark Corridor'?", options: ["To show Jamal is no longer afraid.", "To create a tense pause before the next event.", "To describe the setting fully.", "To save ink."], correct: 1, extract: "The short sentence slows the pace and leaves a gap of silence... which increases tension.", tip: "Short sentences slow down the reading pace for dramatic effect.", category: "Language for Effect", difficulty: "Difícil" },
+            { text: "What does 'His heart hammered against his ribs' suggest?", options: ["He needs to see a doctor immediately.", "He is extremely terrified and panicking.", "He is excited to see his friend.", "He is doing intense exercise."], correct: 1, extract: "'Hammered' suggests that his heart is beating hard, fast and painfully, which shows that Jamal is terrified.", tip: "A hammer is violent and loud.", category: "Language for Effect", difficulty: "Media" },
+            
+            // Section 4: Feelings, Attitudes, Opinions
+            { text: "What is an 'attitude' in reading comprehension?", options: ["How a character feels at a specific moment.", "How a character thinks about or treats something/someone.", "The clothes a character wears.", "The speed at which a character talks."], correct: 1, extract: "An attitude is how a character thinks about or treats something or someone (for example, suspicious of new technology).", tip: "Feelings are temporary emotions; attitudes are mindsets.", category: "Character Feelings", difficulty: "Media" },
+            { text: "When giving an opinion about a character, what must you do?", options: ["Only write what you personally feel.", "Provide long, copied paragraphs.", "Choose the best interpretation and prove it with short quotations.", "Ignore the text and use outside knowledge."], correct: 2, extract: "choose the best interpretation of a character and to prove it with quotations.", tip: "Your opinion must be anchored in the text.", category: "Character Feelings", difficulty: "Media" },
+            { text: "In the Mr Okafor example, why does he say 'Thank you for telling me' quietly?", options: ["He doesn't care about the news.", "He wants his daughter to speak louder.", "He is keeping his voice controlled to hide that he is upset.", "He is whispering a secret."], correct: 2, extract: "This suggests that he is keeping his voice soft and controlled because he does not want to show how upset he is.", tip: "He reads the note, folds it neatly, and speaks quietly to hide his true reaction.", category: "Character Feelings", difficulty: "Difícil" },
+            { text: "In 'Tuesday at the Pool', what proves Sofia is terrified?", options: ["She wiped her eyes.", "She stepped down the stair.", "Her knuckles turned white.", "She said 'I'll just watch.'"], correct: 2, extract: "she gripped her towel so tightly that her knuckles turned white... This suggests that she is extremely tense and scared", tip: "Physical signs of extreme grip show intense fear.", category: "Character Feelings", difficulty: "Media" },
+            { text: "What is Sofia's ultimate attitude by the end of the extract?", options: ["She remains lazy and refuses to try.", "She is frightened but finds the courage to try.", "She is angry at her teacher.", "She loves swimming."], correct: 1, extract: "Sofia is frightened but finds the courage to try.", tip: "She takes a deep breath and steps into the pool despite her fear.", category: "Character Feelings", difficulty: "Media" },
+            { text: "In 'Grandma and the Phone', how does Grandma treat the phone at first?", options: ["With enthusiasm", "Like a dangerous animal ('as though it might bite')", "Like a toy", "She ignores it completely"], correct: 1, extract: "She is suspicious and unwilling to use it. The simile 'as though it might bite' suggests...", tip: "Look at the simile used in the first sentence of that text.", category: "Character Feelings", difficulty: "Media" },
+            { text: "What does 'her face softened' suggest about Grandma Beatriz?", options: ["She is falling asleep.", "Her skin is very smooth.", "Her expression relaxes because she is now open to learning.", "She is angry and crying."], correct: 2, extract: "The phrase 'her face softened' shows that her expression relaxes when she sees the photo... she now sees a use for the phone.", tip: "A 'soft' face means the tension and anger have left it.", category: "Character Feelings", difficulty: "Media" },
+            { text: "What is a common mistake when answering 'opinion' questions?", options: ["Using short quotations.", "Explaining the quotation clearly.", "Copying a long quotation and leaving it unexplained.", "Using the formula 'This suggests that...'"], correct: 2, extract: "Common mistake: Copying a long quotation and leaving it unexplained.", tip: "The text says 'A quotation is evidence, not an answer.'", category: "Character Feelings", difficulty: "Media" },
+            
+            // Section 5: Author's Purpose & Style
+            { text: "What defines the 'audience' of a text?", options: ["The length of the text.", "The people the writer expects to read it.", "The font used to print it.", "The emotional state of the writer."], correct: 1, extract: "audience (the people the writer expects to read it).", tip: "It's who the text is 'talking' to.", category: "Style & Purpose", difficulty: "Fácil" },
+            { text: "Which of the following is a feature of INFORMAL writing?", options: ["'Yours sincerely'", "Complex vocabulary like 'equipment'", "Contractions like 'I'm' and 'can't'", "Polite, precise sentences"], correct: 2, extract: "Informal: Contractions (I'm, can't, we'll)", tip: "It's how you talk to friends, smashing words together.", category: "Style & Purpose", difficulty: "Fácil" },
+            { text: "If a text uses a catchy headline, direct address ('you'), and emotive language, it is likely a(n):", options: ["Diary entry", "Notice", "Advertisement", "Formal Email"], correct: 2, extract: "Advertisement: Catchy headline; direct address (you); commands; offers; emotive or exciting language.", tip: "These features are meant to grab attention and sell something.", category: "Style & Purpose", difficulty: "Media" },
+            { text: "In Ollie's letter, why is the phrase 'School has been mad' considered informal?", options: ["Because he is angry.", "Because 'mad' is a slang, conversational word.", "Because he forgot to use punctuation.", "Because it is a lie."], correct: 1, extract: "'Mad' is a slang, conversational word meaning 'very busy', which shows that Ollie is writing in a relaxed way.", tip: "It's an idiom/slang commonly used between friends.", category: "Style & Purpose", difficulty: "Media" },
+            { text: "In 'A Letter to Gran', what feature clearly shows it's a letter?", options: ["It has a catchy headline.", "It uses bullet points.", "It has an address, date, greeting, and sign-off.", "It uses formal vocabulary."], correct: 2, extract: "an address and date at the top... a greeting ('Dear Gran'); a sign-off ('Lots of love')", tip: "Look at the layout elements at the top and bottom.", category: "Style & Purpose", difficulty: "Fácil" },
+            { text: "Why did Zainab write the letter to Gran?", options: ["To ask for money.", "To complain about her bike.", "To share her exciting news about riding her bike.", "To inform Gran about the weather."], correct: 2, extract: "She has written to share her exciting news with her grandmother.", tip: "She says 'Guess what? I've finally learned...'", category: "Style & Purpose", difficulty: "Fácil" },
+            { text: "In Daniela's email, how do we know the writing is formal?", options: ["She uses the phrase 'laughed your socks off'.", "She uses 'Yours sincerely' and 'I would be grateful'.", "She uses exclamation marks in every sentence.", "She addresses him as 'Hi J.'"], correct: 1, extract: "'I would be grateful if you could consider this request' - a very polite phrase... 'Yours sincerely' - a formal sign-off.", tip: "These are standard phrases for official correspondence.", category: "Style & Purpose", difficulty: "Media" },
+            { text: "How does Daniela try to persuade Mr Ferreira to agree?", options: ["By begging and crying.", "By acknowledging his difficulty and offering to tidy up the equipment.", "By threatening to quit the club.", "By sending him a photo."], correct: 1, extract: "She acknowledges his difficulty ('I appreciate that the hall is already busy') and offers help ('we would be happy to set up and tidy away').", tip: "She shows she is responsible and considerate.", category: "Style & Purpose", difficulty: "Difícil" },
+            
+            // Section 6: Sequencing & Comprehension
+            { text: "What does 'overall comprehension' mean?", options: ["Reading only the first paragraph.", "Understanding the main idea, connecting details, and the order of events.", "Translating the text into Spanish.", "Counting the number of nouns."], correct: 1, extract: "Overall comprehension means understanding the whole text: the main idea, how details connect, and the order in which events happen.", tip: "It's seeing the 'big picture'.", category: "Sequencing", difficulty: "Fácil" },
+            { text: "What is a 'recurring idea or motif'?", options: ["A time marker.", "A character who dies.", "An object, belief or phrase that appears more than once.", "The last sentence of a text."], correct: 2, extract: "Recurring idea or motif: an object, belief or phrase that appears more than once.", tip: "It's a pattern the author keeps returning to.", category: "Sequencing", difficulty: "Media" },
+            { text: "When sequencing events, what should you beware of?", options: ["Capital letters.", "Time markers.", "Flashbacks and events mentioned out of order.", "Short sentences."], correct: 2, extract: "Beware of flashbacks and of events that are mentioned out of order.", tip: "Just because an event is written first doesn't mean it happened first.", category: "Sequencing", difficulty: "Media" },
+            { text: "In the 'Ines' worked example, which happened FIRST chronologically?", options: ["She ate her sandwich.", "She reached home.", "She packed her rucksack.", "She crossed the river."], correct: 2, extract: "Time markers give the order: 'Before sunrise' (packing), 'By seven o'clock' (river)...", tip: "What did she do 'Before sunrise'?", category: "Sequencing", difficulty: "Media" },
+            { text: "In 'Grandfather's Kite', what happens right AFTER the gust caught the kite?", options: ["Hugo finds it in a tree.", "Hugo laughs, then the string snaps.", "Hugo fixes the kite.", "Hugo goes home."], correct: 1, extract: "Then a gust caught it and it soared. Hugo laughed - until the string snapped.", tip: "Read what happens immediately after it soared.", category: "Sequencing", difficulty: "Difícil" },
+            { text: "How does the last sentence of 'Grandfather's Kite' connect to the beginning?", options: ["It mentions his grandmother instead.", "The kite is back in the shed, but now waiting for 'next summer' instead of being forgotten.", "The kite is destroyed forever.", "Hugo sells the kite."], correct: 1, extract: "The kite is 'hanging back in the shed', which echoes the first sentence... However, the ending is different, because the kite is now waiting 'for next summer'", tip: "It's a full circle, but with a more hopeful ending.", category: "Sequencing", difficulty: "Difícil" },
+            { text: "In 'The Surprise', what happens FIRST chronologically?", options: ["The front door clicked.", "Nadia clutched the banner.", "The children hid in the pantry.", "They shouted 'Surprise!'"], correct: 2, extract: "Nadia and Felix had hidden in the pantry since three o'clock.", tip: "What did they do at three o'clock, before anything else?", category: "Sequencing", difficulty: "Media" },
+            { text: "What is the main idea of 'The Surprise'?", options: ["Two children hate waiting.", "A mother is angry at her children.", "Two children prepare a surprise welcome for their mother and deal with waiting differently.", "A boy eats too many biscuits."], correct: 2, extract: "The two children prepare a surprise welcome for their mother, and they deal with the waiting in very different ways.", tip: "Summarize the entire event: the goal, the process, the result.", category: "Sequencing", difficulty: "Difícil" }
+        ];
+
+        // --- GAME STATE ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let attemptsOnCurrent = 0;
+        let shuffledQuestions = [];
+
+        // --- DOM ELEMENTS ---
+        const startScreen = document.getElementById('start-screen');
+        const gameUI = document.getElementById('game-ui');
+        const endScreen = document.getElementById('end-screen');
+        const scoreDisplay = document.getElementById('score-display');
+        const questionCounter = document.getElementById('question-counter');
+        const progressBar = document.getElementById('progress-bar');
+        
+        const questionText = document.getElementById('question-text');
+        const extractContainer = document.getElementById('extract-container');
+        const extractText = document.getElementById('extract-text');
+        const optionsContainer = document.getElementById('options-container');
+        
+        const tipModal = document.getElementById('tip-modal');
+        const tipText = document.getElementById('tip-text');
+        const lostModal = document.getElementById('lost-modal');
+        const correctOverlay = document.getElementById('correct-overlay');
+        
+        const categoryBadge = document.getElementById('category-badge');
+        const difficultyBadge = document.getElementById('difficulty-badge');
+
+        // --- GAME LOGIC ---
+
+        // Shuffle array using Fisher-Yates
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        async function startGame() {
+            await initAudio();
+            // Shuffle questions to make it dynamic, or keep them in order? 
+            // The prompt says 50 questions. Let's shuffle them to make it a real game.
+            shuffledQuestions = shuffle([...allQuestions]);
+            currentQuestionIndex = 0;
+            score = 0;
+            updateScore(0);
+            
+            startScreen.classList.add('hidden');
+            gameUI.classList.remove('hidden');
+            gameUI.classList.add('flex');
+            
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            attemptsOnCurrent = 0;
+            const q = shuffledQuestions[currentQuestionIndex];
+            
+            // Update UI Counters
+            questionCounter.innerText = currentQuestionIndex + 1;
+            progressBar.style.width = `${((currentQuestionIndex) / 50) * 100}%`;
+            
+            // Update Badges
+            categoryBadge.innerText = q.category;
+            difficultyBadge.innerText = q.difficulty;
+            
+            // Set Difficulty Badge Colors
+            difficultyBadge.className = 'text-xs md:text-sm font-semibold px-3 py-1 rounded-full shadow-sm ';
+            if(q.difficulty === 'Fácil') difficultyBadge.classList.add('bg-green-100', 'text-green-700');
+            else if(q.difficulty === 'Media') difficultyBadge.classList.add('bg-yellow-100', 'text-yellow-700');
+            else difficultyBadge.classList.add('bg-red-100', 'text-red-700');
+
+            // Render Text
+            questionText.innerText = q.text;
+            
+            if (q.extract) {
+                extractContainer.classList.remove('hidden');
+                extractText.innerHTML = `<strong>Extracto/Nota:</strong> "${q.extract}"`;
+            } else {
+                extractContainer.classList.add('hidden');
+            }
+
+            // Render Options
+            optionsContainer.innerHTML = '';
+            
+            // Create an array of option objects to shuffle them
+            let optionsObj = q.options.map((opt, idx) => ({ text: opt, isCorrect: idx === q.correct }));
+            optionsObj = shuffle(optionsObj);
+
+            optionsObj.forEach((opt) => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-left p-4 md:p-5 bg-white border-2 border-slate-200 rounded-xl hover:border-indigo-400 hover:bg-indigo-50 transition-all font-medium text-slate-700 shadow-sm active:scale-[0.98]';
+                btn.innerHTML = `<span class="flex items-center"><i class="fa-regular fa-circle mr-3 text-slate-400"></i> ${opt.text}</span>`;
+                btn.onclick = () => handleAnswer(opt.isCorrect, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(isCorrect, btnElement) {
+            const q = shuffledQuestions[currentQuestionIndex];
+
+            if (isCorrect) {
+                // Correct!
+                playCorrectSound();
+                updateScore(1);
+                
+                // Show Correct Overlay
+                correctOverlay.classList.remove('hidden');
+                setTimeout(() => {
+                    correctOverlay.classList.add('hidden');
+                    advanceNext();
+                }, 1200);
+
+            } else {
+                // Wrong!
+                attemptsOnCurrent++;
+                btnElement.classList.add('border-red-400', 'bg-red-50', 'text-red-700', 'animate-shake');
+                btnElement.innerHTML = `<span class="flex items-center"><i class="fa-regular fa-circle-xmark mr-3 text-red-500"></i> ${btnElement.innerText}</span>`;
+                btnElement.disabled = true;
+
+                if (attemptsOnCurrent === 1) {
+                    // Show Tip
+                    playTipSound();
+                    tipText.innerText = q.tip;
+                    tipModal.classList.remove('hidden');
+                } else {
+                    // Second mistake: lose point
+                    playWrongSound();
+                    lostModal.classList.remove('hidden');
+                }
+            }
+        }
+
+        function updateScore(points) {
+            score += points;
+            scoreDisplay.innerText = score;
+            // Pop effect
+            scoreDisplay.parentElement.classList.add('scale-110', 'text-green-500');
+            setTimeout(() => {
+                scoreDisplay.parentElement.classList.remove('scale-110', 'text-green-500');
+            }, 300);
+        }
+
+        function closeTip() {
+            tipModal.classList.add('hidden');
+        }
+
+        function nextQuestion() {
+            lostModal.classList.add('hidden');
+            advanceNext();
+        }
+
+        function advanceNext() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < 50) { // Should be exactly 50
+                loadQuestion();
+            } else {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            gameUI.classList.add('hidden');
+            gameUI.classList.remove('flex');
+            endScreen.classList.remove('hidden');
+            endScreen.classList.add('flex');
+            
+            document.getElementById('final-score').innerText = score;
+            
+            const message = document.getElementById('final-message');
+            if (score === 50) {
+                message.innerText = "¡Perfecto! Eres un maestro del Reading & Comprehension.";
+                playWinSound();
+            } else if (score >= 40) {
+                message.innerText = "¡Excelente trabajo! Estás muy listo para el examen.";
+                playWinSound();
+            } else if (score >= 25) {
+                message.innerText = "Buen intento. Revisa tus puntos débiles en la guía.";
+            } else {
+                message.innerText = "Necesitas repasar la guía con más calma. ¡Sigue practicando!";
+            }
+        }
+
+    </script>
+</body>
+</html>
