@@ -1,0 +1,360 @@
+<?php
+// Sesión Final IGCSE - 50 Preguntas (Alto Nivel - Simulación Oficial)
+session_start();
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IGCSE Final Exam Simulation - Aprendo con Alejo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; overflow: hidden; }
+        
+        /* Intro Screen */
+        #intro-screen { position: fixed; inset: 0; background: #0f172a; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 50; transition: opacity 0.5s ease; }
+        #intro-screen.hidden { opacity: 0; pointer-events: none; }
+        .start-btn { background: #3b82f6; color: white; font-size: 2rem; font-weight: bold; padding: 1.5rem 4rem; border-radius: 9999px; cursor: pointer; transition: transform 0.2s, background 0.2s; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.5); border: none; }
+        .start-btn:hover { transform: scale(1.05); background: #2563eb; }
+
+        /* Main Workspace */
+        .workspace { display: flex; height: 100vh; width: 100vw; background: #1e293b; opacity: 0; transition: opacity 0.5s ease; }
+        .workspace.active { opacity: 1; }
+
+        .left-pane { width: 75%; padding: 3rem 4rem; overflow-y: auto; background: #f8fafc; color: #1e293b; position: relative; border-radius: 20px 0 0 20px; box-shadow: 5px 0 15px rgba(0,0,0,0.3); }
+        .right-pane { width: 25%; padding: 2rem; background: #0f172a; display: flex; flex-direction: column; gap: 2rem; overflow-y: auto; }
+        
+        .question-container { display: none; margin-bottom: 5rem; animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .question-container.active { display: block; }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2.5rem; }
+        .option-btn { padding: 1.5rem; border: 2px solid #cbd5e1; border-radius: 0.75rem; background: white; text-align: left; cursor: pointer; transition: all 0.2s; font-size: 1.25rem; font-weight: 500; color: #334155; }
+        .option-btn:hover { border-color: #3b82f6; background-color: #eff6ff; transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .option-btn.selected { border-color: #10b981; background-color: #ecfdf5; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2); color: #065f46; }
+        .option-btn.wrong { border-color: #ef4444; background-color: #fef2f2; color: #991b1b; opacity: 0.7; }
+        
+        .feedback { display: none; margin-top: 2rem; padding: 1.5rem; border-radius: 0.75rem; font-size: 1.1rem; line-height: 1.6; }
+        .feedback.error { background-color: #fef2f2; color: #991b1b; border-left: 6px solid #ef4444; display: block; }
+        .feedback.success { background-color: #f0fdf4; color: #166534; border-left: 6px solid #10b981; display: block; }
+        .feedback.final-error { background-color: #1e293b; color: #f8fafc; border-left: 6px solid #ef4444; display: block; }
+
+        /* IGCSE Grade Tracker */
+        .grade-tracker { background: #1e293b; padding: 1.5rem; border-radius: 1rem; border: 1px solid #334155; text-align: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
+        .grade-title { font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; margin-bottom: 0.5rem; }
+        .grade-display { font-size: 3.5rem; font-weight: 800; font-family: monospace; line-height: 1; margin-bottom: 0.5rem; }
+        .grade-A-star { color: #a78bfa; text-shadow: 0 0 15px rgba(167, 139, 250, 0.4); }
+        .grade-A { color: #34d399; }
+        .grade-B { color: #60a5fa; }
+        .grade-C { color: #fbbf24; }
+        .grade-Fail { color: #f87171; }
+        .score-text { font-size: 1rem; color: #cbd5e1; }
+
+        .tool-panel { background: #1e293b; padding: 1.5rem; border-radius: 1rem; border: 1px solid #334155; }
+        
+        .nav-controls { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 4rem; background: rgba(248, 250, 252, 0.95); border-top: 1px solid #e2e8f0; backdrop-filter: blur(10px); border-radius: 0 0 0 20px; }
+        .nav-btn { background: #0f172a; color: white; padding: 1rem 2rem; border-radius: 9999px; cursor: pointer; font-weight: 600; font-size: 1.1rem; transition: all 0.2s; border: none; display: flex; align-items: center; gap: 0.75rem; }
+        .nav-btn:hover:not(:disabled) { background: #3b82f6; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); }
+        .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        
+        /* Calculator */
+        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-top: 1rem; }
+        .calc-btn { background: #334155; border: 1px solid #475569; padding: 1rem; border-radius: 0.5rem; color: white; font-weight: bold; font-size: 1.25rem; cursor: pointer; transition: background 0.2s; }
+        .calc-btn:hover { background: #475569; }
+        .calc-btn.op { background: #2563eb; border-color: #3b82f6; }
+        .calc-btn.op:hover { background: #3b82f6; }
+        .calc-display { background: #020617; padding: 1rem; border-radius: 0.5rem; font-family: monospace; text-align: right; font-size: 1.75rem; color: #34d399; margin-bottom: 1rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body>
+
+<!-- Intro Screen -->
+<div id="intro-screen">
+    <div class="text-center">
+        <h2 class="text-xl text-blue-400 font-semibold tracking-widest uppercase mb-4">Cambridge IGCSE™ Mathematics (0580)</h2>
+        <h1 class="text-6xl font-extrabold text-white mb-8">Paper 4 (Extended) Final Simulation</h1>
+        <p class="text-xl text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed">50 high-difficulty questions encompassing Quadratics, Coordinate Geometry, Sequences, Mensuration, and Transformations. Maximum marks grading scheme applies.</p>
+        <button onclick="startExam()" class="start-btn">START EXAM</button>
+    </div>
+</div>
+
+<!-- Main Workspace -->
+<div class="workspace" id="workspace">
+    <!-- Panel Izquierdo: Preguntas -->
+    <div class="left-pane">
+        <div class="flex justify-between items-center mb-10 border-b-2 border-gray-200 pb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">Aprendo con Alejo</h1>
+                <p class="text-gray-500 mt-1 font-medium">IGCSE Final Review Session</p>
+            </div>
+            <span class="bg-indigo-600 text-white text-sm font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-sm">Extended Syllabus</span>
+        </div>
+
+        <div id="quiz-container" style="padding-bottom: 120px;">
+            <!-- Preguntas inyectadas via JS -->
+        </div>
+
+        <!-- Controles de Navegación -->
+        <div class="nav-controls">
+            <button id="prevBtn" class="nav-btn" onclick="changeQuestion(-1)" disabled>
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                Previous
+            </button>
+            <span id="questionCounter" class="text-xl font-bold text-gray-700 tracking-wide">Q 1 / 50</span>
+            <button id="nextBtn" class="nav-btn" onclick="changeQuestion(1)">
+                Next Question
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Panel Derecho: Herramientas y Grading -->
+    <div class="right-pane">
+        <!-- Grade Tracker -->
+        <div class="grade-tracker">
+            <div class="grade-title">Current IGCSE Grade</div>
+            <div id="gradeDisplay" class="grade-display grade-A-star">A*</div>
+            <div class="score-text">Score: <span id="scoreDisplay" class="font-bold text-white">0</span> / 150 marks</div>
+            <div class="w-full bg-gray-700 rounded-full h-2.5 mt-4">
+              <div id="progressBar" class="bg-blue-500 h-2.5 rounded-full" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Fórmulas -->
+        <div class="tool-panel">
+            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4 border-b border-gray-700 pb-2">Formula Sheet</h3>
+            <ul class="text-sm space-y-3 font-mono text-gray-300">
+                <li>\(x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}\)</li>
+                <li>\(d = \sqrt{(x_2-x_1)^2 + (y_2-y_1)^2}\)</li>
+                <li>\(m_1 \times m_2 = -1\) (Perpendicular)</li>
+                <li>Cone: \(V = \frac{1}{3}\pi r^2 h\), \(SA = \pi r^2 + \pi r l\)</li>
+                <li>Sphere: \(V = \frac{4}{3}\pi r^3\)</li>
+                <li>Sector: \(A = \frac{\theta}{360}\pi r^2\)</li>
+            </ul>
+        </div>
+
+        <!-- Calculadora -->
+        <div class="tool-panel flex-grow">
+            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4 border-b border-gray-700 pb-2">Calculator</h3>
+            <div class="calc-display" id="calcDisplay">0</div>
+            <div class="calc-grid">
+                <button class="calc-btn op" onclick="calcAction('clear')">C</button>
+                <button class="calc-btn op" onclick="calcAction('back')">←</button>
+                <button class="calc-btn op" onclick="calcAction('%')">%</button>
+                <button class="calc-btn op" onclick="calcAction('/')">÷</button>
+                
+                <button class="calc-btn" onclick="calcAction('7')">7</button>
+                <button class="calc-btn" onclick="calcAction('8')">8</button>
+                <button class="calc-btn" onclick="calcAction('9')">9</button>
+                <button class="calc-btn op" onclick="calcAction('*')">×</button>
+                
+                <button class="calc-btn" onclick="calcAction('4')">4</button>
+                <button class="calc-btn" onclick="calcAction('5')">5</button>
+                <button class="calc-btn" onclick="calcAction('6')">6</button>
+                <button class="calc-btn op" onclick="calcAction('-')">-</button>
+                
+                <button class="calc-btn" onclick="calcAction('1')">1</button>
+                <button class="calc-btn" onclick="calcAction('2')">2</button>
+                <button class="calc-btn" onclick="calcAction('3')">3</button>
+                <button class="calc-btn op" onclick="calcAction('+')">+</button>
+                
+                <button class="calc-btn" onclick="calcAction('0')" style="grid-column: span 2;">0</button>
+                <button class="calc-btn" onclick="calcAction('.')">.</button>
+                <button class="calc-btn op" onclick="calcAction('=')">=</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const questionsData = [{"topic": "Transformations", "qText": "Point P(8, 7) is enlarged by a scale factor of -2 with centre of enlargement (0, 0). Find the coordinates of the image P'.", "options": [{"id": "A", "text": "(-16, -14)", "isCorrect": true}, {"id": "B", "text": "(-16, -14)", "isCorrect": false}, {"id": "C", "text": "(-4, -3.5)", "isCorrect": false}, {"id": "D", "text": "(16, 14)", "isCorrect": false}], "tip": "Calcula la distancia desde el centro hasta el punto: vector = Punto - Centro. Multiplica ese vector por el factor de escala, y luego s\u00famalo al centro.", "finalError": "Vector P-C = (8-0, 7-0) = (8, 7). Multiplicando por -2: (-16, -14). Sumando al centro (0, 0) obtenemos (-16, -14). Respuesta: A."}, {"topic": "Mensuration", "qText": "A cone has a base radius of 11 cm and a slant height of 12 cm. Calculate its total surface area in terms of \\( \\pi \\).", "options": [{"id": "A", "text": "\\( 253\\pi \\text{ cm}^2 \\)", "isCorrect": true}, {"id": "B", "text": "\\( 132\\pi \\text{ cm}^2 \\)", "isCorrect": false}, {"id": "C", "text": "\\( 385\\pi \\text{ cm}^2 \\)", "isCorrect": false}, {"id": "D", "text": "\\( 374\\pi \\text{ cm}^2 \\)", "isCorrect": false}], "tip": "El \u00e1rea superficial total de un cono incluye la base circular (\\( \\pi r^2 \\)) y el \u00e1rea lateral curva (\\( \\pi r l \\)).", "finalError": "\u00c1rea base = \\( 121\\pi \\). \u00c1rea lateral = \\( 11 \\times 12 \\pi = 132\\pi \\). Total = \\( 253\\pi \\). Respuesta: A."}, {"topic": "Algebra & Equations", "qText": "Solve by completing the square or quadratic formula: \\( 1x^2 + 9x -4 = 0 \\). Give your answers to 2 decimal places.", "options": [{"id": "A", "text": "x = 0.42 or x = -9.42", "isCorrect": true}, {"id": "B", "text": "x = -0.47 or x = -8.53", "isCorrect": false}, {"id": "C", "text": "x = 9.42 or x = -0.42", "isCorrect": false}, {"id": "D", "text": "x = 0.22 or x = -9.22", "isCorrect": false}], "tip": "Aplica la f\u00f3rmula cuadr\u00e1tica \\( x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a} \\). Ten cuidado con el signo de 'c'.", "finalError": "Discriminante = \\( 9^2 - 4(1)(-4) = 97 \\). Aplicando la f\u00f3rmula y redondeando a 2 decimales obtienes la respuesta correcta. Respuesta: A."}, {"topic": "Mensuration", "qText": "A cone has a base radius of 6 cm and a slant height of 6 cm. Calculate its total surface area in terms of \\( \\pi \\).", "options": [{"id": "A", "text": "\\( 72\\pi \\text{ cm}^2 \\)", "isCorrect": true}, {"id": "B", "text": "\\( 36\\pi \\text{ cm}^2 \\)", "isCorrect": false}, {"id": "C", "text": "\\( 108\\pi \\text{ cm}^2 \\)", "isCorrect": false}, {"id": "D", "text": "\\( 108\\pi \\text{ cm}^2 \\)", "isCorrect": false}], "tip": "El \u00e1rea superficial total de un cono incluye la base circular (\\( \\pi r^2 \\)) y el \u00e1rea lateral curva (\\( \\pi r l \\)).", "finalError": "\u00c1rea base = \\( 36\\pi \\). \u00c1rea lateral = \\( 6 \\times 6 \\pi = 36\\pi \\). Total = \\( 72\\pi \\). Respuesta: A."}, {"topic": "Sequences", "qText": "Find the \\( n^{th} \\) term of this quadratic sequence: <br><br> 1 &nbsp;&nbsp; 5 &nbsp;&nbsp; 11 &nbsp;&nbsp; 19 &nbsp;&nbsp; 29", "options": [{"id": "A", "text": "\\( 1n^2 + 1n - 1 \\)", "isCorrect": true}, {"id": "B", "text": "\\( 2n^2 + 1n - 1 \\)", "isCorrect": false}, {"id": "C", "text": "\\( 1n^2 - 1n - 1 \\)", "isCorrect": false}, {"id": "D", "text": "\\( n^2 + 1n + -1 \\)", "isCorrect": false}], "tip": "Encuentra la segunda diferencia constante y div\u00eddela entre 2 para obtener el coeficiente de \\( n^2 \\). Luego resta \\( an^2 \\) a los t\u00e9rminos originales para encontrar el patr\u00f3n lineal.", "finalError": "La segunda diferencia es 2, por lo que el primer t\u00e9rmino es 1n\u00b2. Restando esto queda un patr\u00f3n lineal. Respuesta: A."}, {"topic": "Transformations", "qText": "Point P(9, 8) is enlarged by a scale factor of 2.5 with centre of enlargement (1, -1). Find the coordinates of the image P'.", "options": [{"id": "A", "text": "(21, 21.5)", "isCorrect": true}, {"id": "B", "text": "(22.5, 20)", "isCorrect": false}, {"id": "C", "text": "(4.2, 2.6)", "isCorrect": false}, {"id": "D", "text": "(-21, -21.5)", "isCorrect": false}], "tip": "Calcula la distancia desde el centro hasta el punto: vector = Punto - Centro. Multiplica ese vector por el factor de escala, y luego s\u00famalo al centro.", "finalError": "Vector P-C = (9-1, 8--1) = (8, 9). Multiplicando por 2.5: (20, 22.5). Sumando al centro (1, -1) obtenemos (21, 21.5). Respuesta: A."}, {"topic": "Coordinate Geometry", "qText": "Find the equation of the line perpendicular to \\( y = -2x + 2 \\) that passes through the point (1, 0).", "options": [{"id": "A", "text": "\\( y = 0.50x + -0.50 \\)", "isCorrect": true}, {"id": "B", "text": "\\( y = -2x + 2.00 \\)", "isCorrect": false}, {"id": "C", "text": "\\( y = 0.50x + 0.50 \\)", "isCorrect": false}, {"id": "D", "text": "\\( y = -0.50x + 0.50 \\)", "isCorrect": false}], "tip": "El gradiente de la l\u00ednea perpendicular es el rec\u00edproco negativo: \\( m_2 = -1 / m_1 \\). Luego usa \\( y - y_1 = m(x - x_1) \\).", "finalError": "Gradiente perpendicular = 0.50. Ecuaci\u00f3n: \\( y - 0 = 0.50(x - 1) \\). Expandiendo obtienes el resultado. Respuesta: A."}, {"topic": "Algebra & Equations", "qText": "Solve by completing the square or quadratic formula: \\( 3x^2 + 6x -12 = 0 \\). Give your answers to 2 decimal places.", "options": [{"id": "A", "text": "x = 1.24 or x = -3.24", "isCorrect": true}, {"id": "B", "text": "x = -1.00+1.73j or x = -1.00-1.73j", "isCorrect": false}, {"id": "C", "text": "x = 3.24 or x = -1.24", "isCorrect": false}, {"id": "D", "text": "x = 0.73 or x = -2.73", "isCorrect": false}], "tip": "Aplica la f\u00f3rmula cuadr\u00e1tica \\( x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a} \\). Ten cuidado con el signo de 'c'.", "finalError": "Discriminante = \\( 6^2 - 4(3)(-12) = 180 \\). Aplicando la f\u00f3rmula y redondeando a 2 decimales obtienes la respuesta correcta. Respuesta: A."}, {"topic": "Algebra & Equations", "qText": "Solve by completing the square or quadratic formula: \\( 3x^2 + 8x -15 = 0 \\). Give your answers to 2 decimal places.", "options": [{"id": "A", "text": "x = 1.27 or x = -3.94", "isCorrect": true}, {"id": "B", "text": "x = -1.33+1.80j or x = -1.33-1.80j", "isCorrect": false}, {"id": "C", "text": "x = 3.94 or x = -1.27", "isCorrect": false}, {"id": "D", "text": "x = 0.73 or x = -3.40", "isCorrect": false}], "tip": "Aplica la f\u00f3rmula cuadr\u00e1tica \\( x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a} \\). Ten cuidado con el signo de 'c'.", "finalError": "Discriminante = \\( 8^2 - 4(3)(-15) = 244 \\). Aplicando la f\u00f3rmula y redondeando a 2 decimales obtienes la respuesta correcta. Respuesta: A."}, {"topic": "Transformations", "qText": "Point P(4, 10) is enlarged by a scale factor of -3 with centre of enlargement (1, 0). Find the coordinates of the image P'.", "options": [{"id": "A", "text": "(-8, -30)", "isCorrect": true}, {"id": "B", "text": "(-12, -30)", "isCorrect": false}, {"id": "C", "text": "(0, -3.33333)", "isCorrect": false}, {"id": "D", "text": "(8, 30)", "isCorrect": false}], "tip": "Calcula la distancia desde el centro hasta el punto: vector = Punto - Centro. Multiplica ese vector por el factor de escala, y luego s\u00famalo al centro.", "finalError": "Vector P-C = (4-1, 10-0) = (3, 10). Multiplicando por -3: (-9, -30). Sumando al centro (1, 0) obtenemos (-8, -30). Respuesta: A."}, {"topic": "Sequences", "qText": "Find the \\( n^{th} \\) term of this quadratic sequence: <br><br> -3 &nbsp;&nbsp; 4 &nbsp;&nbsp; 17 &nbsp;&nbsp; 36 &nbsp;&nbsp; 61", "options": [{"id": "A", "text": "\\( 3n^2 - 2n - 4 \\)", "isCorrect": true}, {"id": "B", "text": "\\( 6n^2 - 2n - 4 \\)", "isCorrect": false}, {"id": "C", "text": "\\( 3n^2 + 2n - 4 \\)", "isCorrect": false}, {"id": "D", "text": "\\( n^2 + -6n + -4 \\)", "isCorrect": false}], "tip": "Encuentra la segunda diferencia constante y div\u00eddela entre 2 para obtener el coeficiente de \\( n^2 \\). Luego resta \\( an^2 \\) a los t\u00e9rminos originales para encontrar el patr\u00f3n lineal.", "finalError": "La segunda diferencia es 6, por lo que el primer t\u00e9rmino es 3n\u00b2. Restando esto queda un patr\u00f3n lineal. Respuesta: A."}, {"topic": "Mensuration", "qText": "A cone has a base radius of 9 cm and a slant height of 13 cm. Calculate its total surface area in terms of \\( \\pi \\).", "options": [{"id": "A", "text": "\\( 198\\pi \\text{ cm}^2 \\)", "isCorrect": true}, {"id": "B", "text": "\\( 117\\pi \\text{ cm}^2 \\)", "isCorrect": false}, {"id": "C", "text": "\\( 315\\pi \\text{ cm}^2 \\)", "isCorrect": false}, {"id": "D", "text": "\\( 279\\pi \\text{ cm}^2 \\)", "isCorrect": false}], "tip": "El \u00e1rea superficial total de un cono incluye la base circular (\\( \\pi r^2 \\)) y el \u00e1rea lateral curva (\\( \\pi r l \\)).", "finalError": "\u00c1rea base = \\( 81\\pi \\). \u00c1rea lateral = \\( 9 \\times 13 \\pi = 117\\pi \\). Total = \\( 198\\pi \\). Respuesta: A."}, {"topic": "Sequences", "qText": "Find the \\( n^{th} \\) term of this quadratic sequence: <br><br> 4 &nbsp;&nbsp; 12 &nbsp;&nbsp; 24 &nbsp;&nbsp; 40 &nbsp;&nbsp; 60", "options": [{"id": "A", "text": "\\( 2n^2 + 2n \\)", "isCorrect": true}, {"id": "B", "text": "\\( 4n^2 + 2n + 0 \\)", "isCorrect": false}, {"id": "C", "text": "\\( 2n^2 - 2n + 0 \\)", "isCorrect": false}, {"id": "D", "text": "\\( n^2 + 4n + 0 \\)", "isCorrect": false}], "tip": "Encuentra la segunda diferencia constante y div\u00eddela entre 2 para obtener el coeficiente de \\( n^2 \\). Luego resta \\( an^2 \\) a los t\u00e9rminos originales para encontrar el patr\u00f3n lineal.", "finalError": "La segunda diferencia es 4, por lo que el primer t\u00e9rmino es 2n\u00b2. Restando esto queda un patr\u00f3n lineal. Respuesta: A."}, {"topic": "Transformations", "qText": "Point P(5, 9) is enlarged by a scale factor of -2 with centre of enlargement (3, -3). Find the coordinates of the image P'.", "options": [{"id": "A", "text": "(-1, -27)", "isCorrect": true}, {"id": "B", "text": "(-10, -18)", "isCorrect": false}, {"id": "C", "text": "(2, -9)", "isCorrect": false}, {"id": "D", "text": "(1, 27)", "isCorrect": false}], "tip": "Calcula la distancia desde el centro hasta el punto: vector = Punto - Centro. Multiplica ese vector por el factor de escala, y luego s\u00famalo al centro.", "finalError": "Vector P-C = (5-3, 9--3) = (2, 12). Multiplicando por -2: (-4, -24). Sumando al centro (3, -3) obtenemos (-1, -27). Respuesta: A."}, {"topic": "Coordinate Geometry", "qText": "Find the equation of the line perpendicular to \\( y = 4x + 10 \\) that passes through the point (-3, -2).", "options": [{"id": "A", "text": "\\( y = -0.25x + -2.75 \\)", "isCorrect": true}, {"id": "B", "text": "\\( y = 4x + 10.00 \\)", "isCorrect": false}, {"id": "C", "text": "\\( y = -0.25x + -1.25 \\)", "isCorrect": false}, {"id": "D", "text": "\\( y = 0.25x + -1.25 \\)", "isCorrect": false}], "tip": "El gradiente de la l\u00ednea perpendicular es el rec\u00edproco negativo: \\( m_2 = -1 / m_1 \\). Luego usa \\( y - y_1 = m(x - x_1) \\).", "finalError": "Gradiente perpendicular = -0.25. Ecuaci\u00f3n: \\( y - -2 = -0.25(x - -3) \\). Expandiendo obtienes el resultado. Respuesta: A."}, {"topic": "Sequences", "qText": "Find the \\( n^{th} \\) term of this quadratic sequence: <br><br> 2 &nbsp;&nbsp; 7 &nbsp;&nbsp; 14 &nbsp;&nbsp; 23 &nbsp;&nbsp; 34", "options": [{"id": "A", "text": "\\( 1n^2 + 2n - 1 \\)", "isCorrect": true}, {"id": "B", "text": "\\( 2n^2 + 2n - 1 \\)", "isCorrect": false}, {"id": "C", "text": "\\( 1n^2 - 2n - 1 \\)", "isCorrect": false}, {"id": "D", "text": "\\( n^2 + 2n + -1 \\)", "isCorrect": false}], "tip": "Encuentra la segunda diferencia constante y div\u00eddela entre 2 para obtener el coeficiente de \\( n^2 \\). Luego resta \\( an^2 \\) a los t\u00e9rminos originales para encontrar el patr\u00f3n lineal.", "finalError": "La segunda diferencia es 2, por lo que el primer t\u00e9rmino es 1n\u00b2. Restando esto queda un patr\u00f3n lineal. Respuesta: A."}, {"topic": "Algebra & Equations", "qText": "Solve by completing the square or quadratic formula: \\( 3x^2 + 4x -15 = 0 \\). Give your answers to 2 decimal places.", "options": [{"id": "A", "text": "x = 1.67 or x = -3.00", "isCorrect": true}, {"id": "B", "text": "x = -0.67+2.13j or x = -0.67-2.13j", "isCorrect": false}, {"id": "C", "text": "x = 3.00 or x = -1.67", "isCorrect": false}, {"id": "D", "text": "x = 1.05 or x = -2.38", "isCorrect": false}], "tip": "Aplica la f\u00f3rmula cuadr\u00e1tica \\( x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a} \\). Ten cuidado con el signo de 'c'.", "finalError": "Discriminante = \\( 4^2 - 4(3)(-15) = 196 \\). Aplicando la f\u00f3rmula y redondeando a 2 decimales obtienes la respuesta correcta. Respuesta: A."}, {"topic": "Transformations", "qText": "Point P(7, 8) is enlarged by a scale factor of -3 with centre of enlargement (3, 2). Find the coordinates of the image P'.", "options": [{"id": "A", "text": "(-9, -16)", "isCorrect": true}, {"id": "B", "text": "(-21, -24)", "isCorrect": false}, {"id": "C", "text": "(1.66667, 0)", "isCorrect": false}, {"id": "D", "text": "(9, 16)", "isCorrect": false}], "tip": "Calcula la distancia desde el centro hasta el punto: vector = Punto - Centro. Multiplica ese vector por el factor de escala, y luego s\u00famalo al centro.", "finalError": "Vector P-C = (7-3, 8-2) = (4, 6). Multiplicando por -3: (-12, -18). Sumando al centro (3, 2) obtenemos (-9, -16). Respuesta: A."}, {"topic": "Mensuration", "qText": "A cone has a base radius of 11 cm and a slant height of 12 cm. Calculate its total surface area in terms of \\( \\pi \\).", "options": [{"id": "A", "text": "\\( 253\\pi \\text{ cm}^2 \\)", "isCorrect": true}, {"id": "B", "text": "\\( 132\\pi \\text{ cm}^2 \\)", "isCorrect": false}, {"id": "C", "text": "\\( 385\\pi \\text{ cm}^2 \\)", "isCorrect": false}, {"id": "D", "text": "\\( 374\\pi \\text{ cm}^2 \\)", "isCorrect": false}], "tip": "El \u00e1rea superficial total de un cono incluye la base circular (\\( \\pi r^2 \\)) y el \u00e1rea lateral curva (\\( \\pi r l \\)).", "finalError": "\u00c1rea base = \\( 121\\pi \\). \u00c1rea lateral = \\( 11 \\times 12 \\pi = 132\\pi \\). Total = \\( 253\\pi \\). Respuesta: A."}, {"topic": "Mensuration", "qText": "A cone has a base radius of 7 cm and a slant height of 7 cm. Calculate its total surface area in terms of \\( \\pi \\).", "options": [{"id": "A", "text": "\\( 98\\pi \\text{ cm}^2 \\)", "isCorrect": true}, {"id": "B", "text": "\\( 49\\pi \\text{ cm}^2 \\)", "isCorrect": false}, {"id": "C", "text": "\\( 147\\pi \\text{ cm}^2 \\)", "isCorrect": false}, {"id": "D", "text": "\\( 147\\pi \\text{ cm}^2 \\)", "isCorrect": false}], "tip": "El \u00e1rea superficial total de un cono incluye la base circular (\\( \\pi r^2 \\)) y el \u00e1rea lateral curva (\\( \\pi r l \\)).", "finalError": "\u00c1rea base = \\( 49\\pi \\). \u00c1rea lateral = \\( 7 \\times 7 \\pi = 49\\pi \\). Total = \\( 98\\pi \\). Respuesta: A."}, {"topic": "Algebra & Equations", "qText": "Solve by completing the square or quadratic formula: \\( 1x^2 + 5x -4 = 0 \\). Give your answers to 2 decimal places.", "options": [{"id": "A", "text": "x = 0.70 or x = -5.70", "isCorrect": true}, {"id": "B", "text": "x = -1.00 or x = -4.00", "isCorrect": false}, {"id": "C", "text": "x = 5.70 or x = -0.70", "isCorrect": false}, {"id": "D", "text": "x = 0.37 or x = -5.37", "isCorrect": false}], "tip": "Aplica la f\u00f3rmula cuadr\u00e1tica \\( x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a} \\). Ten cuidado con el signo de 'c'.", "finalError": "Discriminante = \\( 5^2 - 4(1)(-4) = 41 \\). Aplicando la f\u00f3rmula y redondeando a 2 decimales obtienes la respuesta correcta. Respuesta: A."}, {"topic": "Sequences", "qText": "Find the \\( n^{th} \\) term of this quadratic sequence: <br><br> 0 &nbsp;&nbsp; 3 &nbsp;&nbsp; 8 &nbsp;&nbsp; 15 &nbsp;&nbsp; 24", "options": [{"id": "A", "text": "\\( 1n^2 - 1 \\)", "isCorrect": true}, {"id": "B", "text": "\\( 2n^2 + 0n - 1 \\)", "isCorrect": false}, {"id": "C", "text": "\\( 1n^2 - 0n - 1 \\)", "isCorrect": false}, {"id": "D", "text": "\\( n^2 + 0n + -1 \\)", "isCorrect": false}], "tip": "Encuentra la segunda diferencia constante y div\u00eddela entre 2 para obtener el coeficiente de \\( n^2 \\). Luego resta \\( an^2 \\) a los t\u00e9rminos originales para encontrar el patr\u00f3n lineal.", "finalError": "La segunda diferencia es 2, por lo que el primer t\u00e9rmino es 1n\u00b2. Restando esto queda un patr\u00f3n lineal. Respuesta: A."}, {"topic": "Coordinate Geometry", "qText": "Find the equation of the line perpendicular to \\( y = -3x + -4 \\) that passes through the point (0, -4).", "options": [{"id": "A", "text": "\\( y = 0.33x + -4.00 \\)", "isCorrect": true}, {"id": "B", "text": "\\( y = -3x + -4.00 \\)", "isCorrect": false}, {"id": "C", "text": "\\( y = 0.33x + -4.00 \\)", "isCorrect": false}, {"id": "D", "text": "\\( y = -0.33x + -4.00 \\)", "isCorrect": false}], "tip": "El gradiente de la l\u00ednea perpendicular es el rec\u00edproco negativo: \\( m_2 = -1 / m_1 \\). Luego usa \\( y - y_1 = m(x - x_1) \\).", "finalError": "Gradiente perpendicular = 0.33. Ecuaci\u00f3n: \\( y - -4 = 0.33(x - 0) \\). Expandiendo obtienes el resultado. Respuesta: A."}, {"topic": "Transformations", "qText": "Point P(6, 5) is enlarged by a scale factor of 1.5 with centre of enlargement (1, 0). Find the coordinates of the image P'.", "options": [{"id": "A", "text": "(8.5, 7.5)", "isCorrect": true}, {"id": "B", "text": "(9, 7.5)", "isCorrect": false}, {"id": "C", "text": "(4.33333, 3.33333)", "isCorrect": false}, {"id": "D", "text": "(-8.5, -7.5)", "isCorrect": false}], "tip": "Calcula la distancia desde el centro hasta el punto: vector = Punto - Centro. Multiplica ese vector por el factor de escala, y luego s\u00famalo al centro.", "finalError": "Vector P-C = (6-1, 5-0) = (5, 5). Multiplicando por 1.5: (7.5, 7.5). Sumando al centro (1, 0) obtenemos (8.5, 7.5). Respuesta: A."}, {"topic": "Mensuration", "qText": "A cone has a base radius of 8 cm and a slant height of 6 cm. Calculate its total surface area in terms of \\( \\pi \\).", "options": [{"id": "A", "text": "\\( 112\\pi \\text{ cm}^2 \\)", "isCorrect": true}, {"id": "B", "text": "\\( 48\\pi \\text{ cm}^2 \\)", "isCorrect": false}, {"id": "C", "text": "\\( 160\\pi \\text{ cm}^2 \\)", "isCorrect": false}, {"id": "D", "text": "\\( 176\\pi \\text{ cm}^2 \\)", "isCorrect": false}], "tip": "El \u00e1rea superficial total de un cono incluye la base circular (\\( \\pi r^2 \\)) y el \u00e1rea lateral curva (\\( \\pi r l \\)).", "finalError": "\u00c1rea base = \\( 64\\pi \\). \u00c1rea lateral = \\( 8 \\times 6 \\pi = 48\\pi \\). Total = \\( 112\\pi \\). Respuesta: A."}, {"topic": "Transformations", "qText": "Point P(10, 4) is enlarged by a scale factor of 2.5 with centre of enlargement (-1, 1). Find the coordinates of the image P'.", "options": [{"id": "A", "text": "(26.5, 8.5)", "isCorrect": true}, {"id": "B", "text": "(25, 10)", "isCorrect": false}, {"id": "C", "text": "(3.4, 2.2)", "isCorrect": false}, {"id": "D", "text": "(-26.5, -8.5)", "isCorrect": false}], "tip": "Calcula la distancia desde el centro hasta el punto: vector = Punto - Centro. Multiplica ese vector por el factor de escala, y luego s\u00famalo al centro.", "finalError": "Vector P-C = (10--1, 4-1) = (11, 3). Multiplicando por 2.5: (27.5, 7.5). Sumando al centro (-1, 1) obtenemos (26.5, 8.5). Respuesta: A."}, {"topic": "Transformations", "qText": "Point P(7, 9) is enlarged by a scale factor of -3 with centre of enlargement (2, 0). Find the coordinates of the image P'.", "options": [{"id": "A", "text": "(-13, -27)", "isCorrect": true}, {"id": "B", "text": "(-21, -27)", "isCorrect": false}, {"id": "C", "text": "(0.333333, -3)", "isCorrect": false}, {"id": "D", "text": "(13, 27)", "isCorrect": false}], "tip": "Calcula la distancia desde el centro hasta el punto: vector = Punto - Centro. Multiplica ese vector por el factor de escala, y luego s\u00famalo al centro.", "finalError": "Vector P-C = (7-2, 9-0) = (5, 9). Multiplicando por -3: (-15, -27). Sumando al centro (2, 0) obtenemos (-13, -27). Respuesta: A."}, {"topic": "Mensuration", "qText": "A cone has a base radius of 4 cm and a slant height of 10 cm. Calculate its total surface area in terms of \\( \\pi \\).", "options": [{"id": "A", "text": "\\( 56\\pi \\text{ cm}^2 \\)", "isCorrect": true}, {"id": "B", "text": "\\( 40\\pi \\text{ cm}^2 \\)", "isCorrect": false}, {"id": "C", "text": "\\( 96\\pi \\text{ cm}^2 \\)", "isCorrect": false}, {"id": "D", "text": "\\( 72\\pi \\text{ cm}^2 \\)", "isCorrect": false}], "tip": "El \u00e1rea superficial total de un cono incluye la base circular (\\( \\pi r^2 \\)) y el \u00e1rea lateral curva (\\( \\pi r l \\)).", "finalError": "\u00c1rea base = \\( 16\\pi \\). \u00c1rea lateral = \\( 4 \\times 10 \\pi = 40\\pi \\). Total = \\( 56\\pi \\). Respuesta: A."}, {"topic": "Coordinate Geometry", "qText": "Find the equation of the line perpendicular to \\( y = 4x + 4 \\) that passes through the point (0, 4).", "options": [{"id": "A", "text": "\\( y = -0.25x + 4.00 \\)", "isCorrect": true}, {"id": "B", "text": "\\( y = 4x + 4.00 \\)", "isCorrect": false}, {"id": "C", "text": "\\( y = -0.25x + 4.00 \\)", "isCorrect": false}, {"id": "D", "text": "\\( y = 0.25x + 4.00 \\)", "isCorrect": false}], "tip": "El gradiente de la l\u00ednea perpendicular es el rec\u00edproco negativo: \\( m_2 = -1 / m_1 \\). Luego usa \\( y - y_1 = m(x - x_1) \\).", "finalError": "Gradiente perpendicular = -0.25. Ecuaci\u00f3n: \\( y - 4 = -0.25(x - 0) \\). Expandiendo obtienes el resultado. Respuesta: A."}, {"topic": "Algebra & Equations", "qText": "Solve by completing the square or quadratic formula: \\( 3x^2 + 4x -6 = 0 \\). Give your answers to 2 decimal places.", "options": [{"id": "A", "text": "x = 0.90 or x = -2.23", "isCorrect": true}, {"id": "B", "text": "x = -0.67+1.25j or x = -0.67-1.25j", "isCorrect": false}, {"id": "C", "text": "x = 2.23 or x = -0.90", "isCorrect": false}, {"id": "D", "text": "x = 0.54 or x = -1.87", "isCorrect": false}], "tip": "Aplica la f\u00f3rmula cuadr\u00e1tica \\( x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a} \\). Ten cuidado con el signo de 'c'.", "finalError": "Discriminante = \\( 4^2 - 4(3)(-6) = 88 \\). Aplicando la f\u00f3rmula y redondeando a 2 decimales obtienes la respuesta correcta. Respuesta: A."}, {"topic": "Sequences", "qText": "Find the \\( n^{th} \\) term of this quadratic sequence: <br><br> -3 &nbsp;&nbsp; 0 &nbsp;&nbsp; 7 &nbsp;&nbsp; 18 &nbsp;&nbsp; 33", "options": [{"id": "A", "text": "\\( 2n^2 - 3n - 2 \\)", "isCorrect": true}, {"id": "B", "text": "\\( 4n^2 - 3n - 2 \\)", "isCorrect": false}, {"id": "C", "text": "\\( 2n^2 + 3n - 2 \\)", "isCorrect": false}, {"id": "D", "text": "\\( n^2 + -6n + -2 \\)", "isCorrect": false}], "tip": "Encuentra la segunda diferencia constante y div\u00eddela entre 2 para obtener el coeficiente de \\( n^2 \\). Luego resta \\( an^2 \\) a los t\u00e9rminos originales para encontrar el patr\u00f3n lineal.", "finalError": "La segunda diferencia es 4, por lo que el primer t\u00e9rmino es 2n\u00b2. Restando esto queda un patr\u00f3n lineal. Respuesta: A."}, {"topic": "Sequences", "qText": "Find the \\( n^{th} \\) term of this quadratic sequence: <br><br> 1 &nbsp;&nbsp; 6 &nbsp;&nbsp; 13 &nbsp;&nbsp; 22 &nbsp;&nbsp; 33", "options": [{"id": "A", "text": "\\( 1n^2 + 2n - 2 \\)", "isCorrect": true}, {"id": "B", "text": "\\( 2n^2 + 2n - 2 \\)", "isCorrect": false}, {"id": "C", "text": "\\( 1n^2 - 2n - 2 \\)", "isCorrect": false}, {"id": "D", "text": "\\( n^2 + 2n + -2 \\)", "isCorrect": false}], "tip": "Encuentra la segunda diferencia constante y div\u00eddela entre 2 para obtener el coeficiente de \\( n^2 \\). Luego resta \\( an^2 \\) a los t\u00e9rminos originales para encontrar el patr\u00f3n lineal.", "finalError": "La segunda diferencia es 2, por lo que el primer t\u00e9rmino es 1n\u00b2. Restando esto queda un patr\u00f3n lineal. Respuesta: A."}, {"topic": "Algebra & Equations", "qText": "Solve by completing the square or quadratic formula: \\( 3x^2 + 5x -4 = 0 \\). Give your answers to 2 decimal places.", "options": [{"id": "A", "text": "x = 0.59 or x = -2.26", "isCorrect": true}, {"id": "B", "text": "x = -0.83+0.80j or x = -0.83-0.80j", "isCorrect": false}, {"id": "C", "text": "x = 2.26 or x = -0.59", "isCorrect": false}, {"id": "D", "text": "x = 0.33 or x = -2.00", "isCorrect": false}], "tip": "Aplica la f\u00f3rmula cuadr\u00e1tica \\( x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a} \\). Ten cuidado con el signo de 'c'.", "finalError": "Discriminante = \\( 5^2 - 4(3)(-4) = 73 \\). Aplicando la f\u00f3rmula y redondeando a 2 decimales obtienes la respuesta correcta. Respuesta: A."}, {"topic": "Coordinate Geometry", "qText": "Find the equation of the line perpendicular to \\( y = 4x + 17 \\) that passes through the point (-5, -3).", "options": [{"id": "A", "text": "\\( y = -0.25x + -4.25 \\)", "isCorrect": true}, {"id": "B", "text": "\\( y = 4x + 17.00 \\)", "isCorrect": false}, {"id": "C", "text": "\\( y = -0.25x + -1.75 \\)", "isCorrect": false}, {"id": "D", "text": "\\( y = 0.25x + -1.75 \\)", "isCorrect": false}], "tip": "El gradiente de la l\u00ednea perpendicular es el rec\u00edproco negativo: \\( m_2 = -1 / m_1 \\). Luego usa \\( y - y_1 = m(x - x_1) \\).", "finalError": "Gradiente perpendicular = -0.25. Ecuaci\u00f3n: \\( y - -3 = -0.25(x - -5) \\). Expandiendo obtienes el resultado. Respuesta: A."}, {"topic": "Mensuration", "qText": "A cone has a base radius of 8 cm and a slant height of 17 cm. Calculate its total surface area in terms of \\( \\pi \\).", "options": [{"id": "A", "text": "\\( 200\\pi \\text{ cm}^2 \\)", "isCorrect": true}, {"id": "B", "text": "\\( 136\\pi \\text{ cm}^2 \\)", "isCorrect": false}, {"id": "C", "text": "\\( 336\\pi \\text{ cm}^2 \\)", "isCorrect": false}, {"id": "D", "text": "\\( 264\\pi \\text{ cm}^2 \\)", "isCorrect": false}], "tip": "El \u00e1rea superficial total de un cono incluye la base circular (\\( \\pi r^2 \\)) y el \u00e1rea lateral curva (\\( \\pi r l \\)).", "finalError": "\u00c1rea base = \\( 64\\pi \\). \u00c1rea lateral = \\( 8 \\times 17 \\pi = 136\\pi \\). Total = \\( 200\\pi \\). Respuesta: A."}, {"topic": "Coordinate Geometry", "qText": "Find the equation of the line perpendicular to \\( y = 1.5x + 7.0 \\) that passes through the point (-4, 1).", "options": [{"id": "A", "text": "\\( y = -0.67x + -1.67 \\)", "isCorrect": true}, {"id": "B", "text": "\\( y = 1.5x + 7.00 \\)", "isCorrect": false}, {"id": "C", "text": "\\( y = -0.67x + 3.67 \\)", "isCorrect": false}, {"id": "D", "text": "\\( y = 0.67x + 3.67 \\)", "isCorrect": false}], "tip": "El gradiente de la l\u00ednea perpendicular es el rec\u00edproco negativo: \\( m_2 = -1 / m_1 \\). Luego usa \\( y - y_1 = m(x - x_1) \\).", "finalError": "Gradiente perpendicular = -0.67. Ecuaci\u00f3n: \\( y - 1 = -0.67(x - -4) \\). Expandiendo obtienes el resultado. Respuesta: A."}, {"topic": "Algebra & Equations", "qText": "Solve by completing the square or quadratic formula: \\( 2x^2 + 4x -15 = 0 \\). Give your answers to 2 decimal places.", "options": [{"id": "A", "text": "x = 1.92 or x = -3.92", "isCorrect": true}, {"id": "B", "text": "x = -1.00+2.55j or x = -1.00-2.55j", "isCorrect": false}, {"id": "C", "text": "x = 3.92 or x = -1.92", "isCorrect": false}, {"id": "D", "text": "x = 1.18 or x = -3.18", "isCorrect": false}], "tip": "Aplica la f\u00f3rmula cuadr\u00e1tica \\( x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a} \\). Ten cuidado con el signo de 'c'.", "finalError": "Discriminante = \\( 4^2 - 4(2)(-15) = 136 \\). Aplicando la f\u00f3rmula y redondeando a 2 decimales obtienes la respuesta correcta. Respuesta: A."}, {"topic": "Mensuration", "qText": "A cone has a base radius of 6 cm and a slant height of 15 cm. Calculate its total surface area in terms of \\( \\pi \\).", "options": [{"id": "A", "text": "\\( 126\\pi \\text{ cm}^2 \\)", "isCorrect": true}, {"id": "B", "text": "\\( 90\\pi \\text{ cm}^2 \\)", "isCorrect": false}, {"id": "C", "text": "\\( 216\\pi \\text{ cm}^2 \\)", "isCorrect": false}, {"id": "D", "text": "\\( 162\\pi \\text{ cm}^2 \\)", "isCorrect": false}], "tip": "El \u00e1rea superficial total de un cono incluye la base circular (\\( \\pi r^2 \\)) y el \u00e1rea lateral curva (\\( \\pi r l \\)).", "finalError": "\u00c1rea base = \\( 36\\pi \\). \u00c1rea lateral = \\( 6 \\times 15 \\pi = 90\\pi \\). Total = \\( 126\\pi \\). Respuesta: A."}, {"topic": "Coordinate Geometry", "qText": "Find the equation of the line perpendicular to \\( y = 3x + -2 \\) that passes through the point (2, 4).", "options": [{"id": "A", "text": "\\( y = -0.33x + 4.67 \\)", "isCorrect": true}, {"id": "B", "text": "\\( y = 3x + -2.00 \\)", "isCorrect": false}, {"id": "C", "text": "\\( y = -0.33x + 3.33 \\)", "isCorrect": false}, {"id": "D", "text": "\\( y = 0.33x + 3.33 \\)", "isCorrect": false}], "tip": "El gradiente de la l\u00ednea perpendicular es el rec\u00edproco negativo: \\( m_2 = -1 / m_1 \\). Luego usa \\( y - y_1 = m(x - x_1) \\).", "finalError": "Gradiente perpendicular = -0.33. Ecuaci\u00f3n: \\( y - 4 = -0.33(x - 2) \\). Expandiendo obtienes el resultado. Respuesta: A."}, {"topic": "Mensuration", "qText": "A cone has a base radius of 5 cm and a slant height of 19 cm. Calculate its total surface area in terms of \\( \\pi \\).", "options": [{"id": "A", "text": "\\( 120\\pi \\text{ cm}^2 \\)", "isCorrect": true}, {"id": "B", "text": "\\( 95\\pi \\text{ cm}^2 \\)", "isCorrect": false}, {"id": "C", "text": "\\( 215\\pi \\text{ cm}^2 \\)", "isCorrect": false}, {"id": "D", "text": "\\( 145\\pi \\text{ cm}^2 \\)", "isCorrect": false}], "tip": "El \u00e1rea superficial total de un cono incluye la base circular (\\( \\pi r^2 \\)) y el \u00e1rea lateral curva (\\( \\pi r l \\)).", "finalError": "\u00c1rea base = \\( 25\\pi \\). \u00c1rea lateral = \\( 5 \\times 19 \\pi = 95\\pi \\). Total = \\( 120\\pi \\). Respuesta: A."}, {"topic": "Coordinate Geometry", "qText": "Find the equation of the line perpendicular to \\( y = 2x + -6 \\) that passes through the point (1, -4).", "options": [{"id": "A", "text": "\\( y = -0.50x + -3.50 \\)", "isCorrect": true}, {"id": "B", "text": "\\( y = 2x + -6.00 \\)", "isCorrect": false}, {"id": "C", "text": "\\( y = -0.50x + -4.50 \\)", "isCorrect": false}, {"id": "D", "text": "\\( y = 0.50x + -4.50 \\)", "isCorrect": false}], "tip": "El gradiente de la l\u00ednea perpendicular es el rec\u00edproco negativo: \\( m_2 = -1 / m_1 \\). Luego usa \\( y - y_1 = m(x - x_1) \\).", "finalError": "Gradiente perpendicular = -0.50. Ecuaci\u00f3n: \\( y - -4 = -0.50(x - 1) \\). Expandiendo obtienes el resultado. Respuesta: A."}, {"topic": "Algebra & Equations", "qText": "Solve for \\( x \\): \\( \\frac{2}{x} + \\frac{3}{x+1} = 2 \\).", "options": [{"id": "A", "text": "x = 2 or x = -0.5", "isCorrect": true}, {"id": "B", "text": "x = -2 or x = 0.5", "isCorrect": false}, {"id": "C", "text": "x = 1 or x = -1", "isCorrect": false}, {"id": "D", "text": "x = 4 or x = -0.25", "isCorrect": false}], "tip": "Multiplica toda la ecuaci\u00f3n por \\( x(x+1) \\) y mueve todos los t\u00e9rminos a un lado para igualar a cero.", "finalError": "\\( 2(x+1) + 3x = 2x(x+1) \\implies 5x + 2 = 2x^2 + 2x \\implies 2x^2 - 3x - 2 = 0 \\implies (2x+1)(x-2)=0 \\). Soluciones: x = 2, x = -0.5. Respuesta: A."}, {"topic": "Sequences", "qText": "Find the \\( n^{th} \\) term of this quadratic sequence: <br><br> 10 &nbsp;&nbsp; 21 &nbsp;&nbsp; 38 &nbsp;&nbsp; 61 &nbsp;&nbsp; 90", "options": [{"id": "A", "text": "\\( 3n^2 + 2n + 5 \\)", "isCorrect": true}, {"id": "B", "text": "\\( 6n^2 + 2n + 5 \\)", "isCorrect": false}, {"id": "C", "text": "\\( 3n^2 - 2n + 5 \\)", "isCorrect": false}, {"id": "D", "text": "\\( n^2 + 6n + 5 \\)", "isCorrect": false}], "tip": "Encuentra la segunda diferencia constante y div\u00eddela entre 2 para obtener el coeficiente de \\( n^2 \\). Luego resta \\( an^2 \\) a los t\u00e9rminos originales para encontrar el patr\u00f3n lineal.", "finalError": "La segunda diferencia es 6, por lo que el primer t\u00e9rmino es 3n\u00b2. Restando esto queda un patr\u00f3n lineal. Respuesta: A."}, {"topic": "Coordinate Geometry", "qText": "Find the equation of the line perpendicular to \\( y = -2x + 7 \\) that passes through the point (3, 1).", "options": [{"id": "A", "text": "\\( y = 0.50x + -0.50 \\)", "isCorrect": true}, {"id": "B", "text": "\\( y = -2x + 7.00 \\)", "isCorrect": false}, {"id": "C", "text": "\\( y = 0.50x + 2.50 \\)", "isCorrect": false}, {"id": "D", "text": "\\( y = -0.50x + 2.50 \\)", "isCorrect": false}], "tip": "El gradiente de la l\u00ednea perpendicular es el rec\u00edproco negativo: \\( m_2 = -1 / m_1 \\). Luego usa \\( y - y_1 = m(x - x_1) \\).", "finalError": "Gradiente perpendicular = 0.50. Ecuaci\u00f3n: \\( y - 1 = 0.50(x - 3) \\). Expandiendo obtienes el resultado. Respuesta: A."}, {"topic": "Sequences", "qText": "Find the \\( n^{th} \\) term of this quadratic sequence: <br><br> 0 &nbsp;&nbsp; 2 &nbsp;&nbsp; 6 &nbsp;&nbsp; 12 &nbsp;&nbsp; 20", "options": [{"id": "A", "text": "\\( 1n^2 - 1n \\)", "isCorrect": true}, {"id": "B", "text": "\\( 2n^2 - 1n + 0 \\)", "isCorrect": false}, {"id": "C", "text": "\\( 1n^2 + 1n + 0 \\)", "isCorrect": false}, {"id": "D", "text": "\\( n^2 + -1n + 0 \\)", "isCorrect": false}], "tip": "Encuentra la segunda diferencia constante y div\u00eddela entre 2 para obtener el coeficiente de \\( n^2 \\). Luego resta \\( an^2 \\) a los t\u00e9rminos originales para encontrar el patr\u00f3n lineal.", "finalError": "La segunda diferencia es 2, por lo que el primer t\u00e9rmino es 1n\u00b2. Restando esto queda un patr\u00f3n lineal. Respuesta: A."}, {"topic": "Coordinate Geometry", "qText": "Find the equation of the line perpendicular to \\( y = 4x + 22 \\) that passes through the point (-5, 2).", "options": [{"id": "A", "text": "\\( y = -0.25x + 0.75 \\)", "isCorrect": true}, {"id": "B", "text": "\\( y = 4x + 22.00 \\)", "isCorrect": false}, {"id": "C", "text": "\\( y = -0.25x + 3.25 \\)", "isCorrect": false}, {"id": "D", "text": "\\( y = 0.25x + 3.25 \\)", "isCorrect": false}], "tip": "El gradiente de la l\u00ednea perpendicular es el rec\u00edproco negativo: \\( m_2 = -1 / m_1 \\). Luego usa \\( y - y_1 = m(x - x_1) \\).", "finalError": "Gradiente perpendicular = -0.25. Ecuaci\u00f3n: \\( y - 2 = -0.25(x - -5) \\). Expandiendo obtienes el resultado. Respuesta: A."}, {"topic": "Algebra & Equations", "qText": "Solve by completing the square or quadratic formula: \\( 1x^2 + 5x -12 = 0 \\). Give your answers to 2 decimal places.", "options": [{"id": "A", "text": "x = 1.77 or x = -6.77", "isCorrect": true}, {"id": "B", "text": "x = -2.50+2.40j or x = -2.50-2.40j", "isCorrect": false}, {"id": "C", "text": "x = 6.77 or x = -1.77", "isCorrect": false}, {"id": "D", "text": "x = 1.00 or x = -6.00", "isCorrect": false}], "tip": "Aplica la f\u00f3rmula cuadr\u00e1tica \\( x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a} \\). Ten cuidado con el signo de 'c'.", "finalError": "Discriminante = \\( 5^2 - 4(1)(-12) = 73 \\). Aplicando la f\u00f3rmula y redondeando a 2 decimales obtienes la respuesta correcta. Respuesta: A."}, {"topic": "Sequences", "qText": "Find the \\( n^{th} \\) term of this quadratic sequence: <br><br> 4 &nbsp;&nbsp; 14 &nbsp;&nbsp; 30 &nbsp;&nbsp; 52 &nbsp;&nbsp; 80", "options": [{"id": "A", "text": "\\( 3n^2 + 1n \\)", "isCorrect": true}, {"id": "B", "text": "\\( 6n^2 + 1n + 0 \\)", "isCorrect": false}, {"id": "C", "text": "\\( 3n^2 - 1n + 0 \\)", "isCorrect": false}, {"id": "D", "text": "\\( n^2 + 3n + 0 \\)", "isCorrect": false}], "tip": "Encuentra la segunda diferencia constante y div\u00eddela entre 2 para obtener el coeficiente de \\( n^2 \\). Luego resta \\( an^2 \\) a los t\u00e9rminos originales para encontrar el patr\u00f3n lineal.", "finalError": "La segunda diferencia es 6, por lo que el primer t\u00e9rmino es 3n\u00b2. Restando esto queda un patr\u00f3n lineal. Respuesta: A."}, {"topic": "Transformations", "qText": "Point P(5, 5) is enlarged by a scale factor of 1.5 with centre of enlargement (-2, -1). Find the coordinates of the image P'.", "options": [{"id": "A", "text": "(8.5, 8)", "isCorrect": true}, {"id": "B", "text": "(7.5, 7.5)", "isCorrect": false}, {"id": "C", "text": "(2.66667, 3)", "isCorrect": false}, {"id": "D", "text": "(-8.5, -8)", "isCorrect": false}], "tip": "Calcula la distancia desde el centro hasta el punto: vector = Punto - Centro. Multiplica ese vector por el factor de escala, y luego s\u00famalo al centro.", "finalError": "Vector P-C = (5--2, 5--1) = (7, 6). Multiplicando por 1.5: (10.5, 9). Sumando al centro (-2, -1) obtenemos (8.5, 8). Respuesta: A."}, {"topic": "Transformations", "qText": "Point P(10, 6) is enlarged by a scale factor of -2 with centre of enlargement (2, 1). Find the coordinates of the image P'.", "options": [{"id": "A", "text": "(-14, -9)", "isCorrect": true}, {"id": "B", "text": "(-20, -12)", "isCorrect": false}, {"id": "C", "text": "(-2, -1.5)", "isCorrect": false}, {"id": "D", "text": "(14, 9)", "isCorrect": false}], "tip": "Calcula la distancia desde el centro hasta el punto: vector = Punto - Centro. Multiplica ese vector por el factor de escala, y luego s\u00famalo al centro.", "finalError": "Vector P-C = (10-2, 6-1) = (8, 5). Multiplicando por -2: (-16, -10). Sumando al centro (2, 1) obtenemos (-14, -9). Respuesta: A."}];
+
+    // Scoring system (Paper 4 Extended uses 3 marks for deep questions)
+    // First try correct: 3 marks
+    // Second try correct: 1 mark (method mark recovered)
+    // Failed: 0 marks
+    let attempts = Array(questionsData.length).fill(0);
+    let score = 0;
+    const maxScore = questionsData.length * 3;
+    let questionsAttempted = 0;
+    
+    let currentQuestionIndex = 0;
+
+    function startExam() {
+        document.getElementById('intro-screen').classList.add('hidden');
+        setTimeout(() => {
+            document.getElementById('workspace').classList.add('active');
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+            }
+        }, 300);
+        initQuiz();
+    }
+
+    function updateGrade() {
+        document.getElementById('scoreDisplay').innerText = score;
+        let percentage = questionsAttempted === 0 ? 100 : (score / (questionsAttempted * 3)) * 100;
+        
+        let grade = "U";
+        let gradeClass = "grade-Fail";
+        
+        if (percentage >= 85) { grade = "A*"; gradeClass = "grade-A-star"; }
+        else if (percentage >= 70) { grade = "A"; gradeClass = "grade-A"; }
+        else if (percentage >= 55) { grade = "B"; gradeClass = "grade-B"; }
+        else if (percentage >= 40) { grade = "C"; gradeClass = "grade-C"; }
+        else { grade = "U"; gradeClass = "grade-Fail"; }
+        
+        const gradeEl = document.getElementById('gradeDisplay');
+        gradeEl.innerText = grade;
+        gradeEl.className = `grade-display ${gradeClass}`;
+        
+        const progress = (questionsAttempted / questionsData.length) * 100;
+        document.getElementById('progressBar').style.width = `${progress}%`;
+    }
+
+    function initQuiz() {
+        const container = document.getElementById('quiz-container');
+        
+        questionsData.forEach((q, index) => {
+            const div = document.createElement('div');
+            div.className = `question-container ${index === 0 ? 'active' : ''}`;
+            div.id = `q-${index}`;
+            
+            const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+            
+            let optionsHTML = '';
+            shuffledOptions.forEach(opt => {
+                optionsHTML += `<button id="btn-${index}-${opt.id}" class="option-btn" onclick="handleOptionClick(${index}, '${opt.id}', ${opt.isCorrect})">${opt.text}</button>`;
+            });
+
+            div.innerHTML = `
+                <div class="mb-4">
+                    <span class="text-sm font-bold text-blue-600 uppercase tracking-widest bg-blue-100 px-3 py-1 rounded-full">${q.topic}</span>
+                    <span class="text-sm font-bold text-gray-400 uppercase tracking-widest ml-3">[3 Marks]</span>
+                </div>
+                <div class="text-2xl text-gray-800 font-medium mb-8 leading-snug">
+                    ${q.qText}
+                </div>
+                <div class="options-grid">
+                    ${optionsHTML}
+                </div>
+                <div id="feedback-${index}" class="feedback"></div>
+            `;
+            container.appendChild(div);
+        });
+        
+        updateNav();
+        updateGrade();
+        if(window.MathJax) { MathJax.typeset(); }
+    }
+
+    function handleOptionClick(qIndex, optId, isCorrect) {
+        if(attempts[qIndex] >= 2) return;
+        
+        const feedback = document.getElementById(`feedback-${qIndex}`);
+        const buttons = document.querySelectorAll(`#q-${qIndex} .option-btn`);
+        const clickedBtn = document.getElementById(`btn-${qIndex}-${optId}`);
+        
+        if (isCorrect) {
+            if (attempts[qIndex] === 0) { score += 3; questionsAttempted++; } // First try
+            else if (attempts[qIndex] === 1) { score += 1; } // Second try recovery
+            
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                if(btn.id === `btn-${qIndex}-${optId}`) {
+                    btn.classList.add('selected');
+                }
+            });
+            
+            feedback.className = 'feedback success';
+            feedback.innerHTML = `<strong>Correct!</strong> Awarded ${attempts[qIndex] === 0 ? '3' : '1'} marks.`;
+            attempts[qIndex] = 99; // Locked
+            
+        } else {
+            attempts[qIndex]++;
+            clickedBtn.classList.add('wrong');
+            clickedBtn.disabled = true;
+
+            if (attempts[qIndex] === 1) {
+                questionsAttempted++; 
+                feedback.className = 'feedback error';
+                feedback.innerHTML = `<strong>Examiner Tip:</strong> ${questionsData[qIndex].tip} <br><span class="text-sm mt-2 block opacity-80">You lost accuracy marks. Try again to salvage 1 method mark.</span>`;
+            } else if (attempts[qIndex] >= 2) {
+                buttons.forEach(btn => btn.disabled = true);
+                feedback.className = 'feedback final-error';
+                feedback.innerHTML = `<span class="text-red-400 font-bold">[0 Marks Awarded]</span><br><br>${questionsData[qIndex].finalError}`;
+            }
+        }
+        
+        updateGrade();
+        if(window.MathJax) { MathJax.typesetPromise([feedback]); }
+    }
+
+    function changeQuestion(dir) {
+        document.getElementById(`q-${currentQuestionIndex}`).classList.remove('active');
+        currentQuestionIndex += dir;
+        document.getElementById(`q-${currentQuestionIndex}`).classList.add('active');
+        updateNav();
+    }
+
+    function updateNav() {
+        document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
+        document.getElementById('nextBtn').disabled = currentQuestionIndex === questionsData.length - 1;
+        document.getElementById('questionCounter').innerText = `Q ${currentQuestionIndex + 1} / ${questionsData.length}`;
+    }
+
+    // Calculator Logic
+    let calcCurrent = '0';
+    let calcPrevious = null;
+    let calcOp = null;
+    let newNum = false;
+
+    function calcAction(action) {
+        const display = document.getElementById('calcDisplay');
+        if (action === 'clear') {
+            calcCurrent = '0'; calcPrevious = null; calcOp = null;
+        } else if (action === 'back') {
+            calcCurrent = calcCurrent.length > 1 ? calcCurrent.slice(0, -1) : '0';
+        } else if (action === '%') {
+            calcCurrent = (parseFloat(calcCurrent) / 100).toString();
+        } else if (['/', '*', '-', '+'].includes(action)) {
+            if (calcOp && !newNum) calculateResult();
+            calcPrevious = calcCurrent;
+            calcOp = action;
+            newNum = true;
+        } else if (action === '=') {
+            if (calcOp) calculateResult();
+            calcOp = null;
+        } else {
+            if (newNum) { calcCurrent = action; newNum = false; }
+            else { calcCurrent = calcCurrent === '0' && action !== '.' ? action : calcCurrent + action; }
+        }
+        display.innerText = calcCurrent;
+    }
+
+    function calculateResult() {
+        if (!calcPrevious || !calcOp) return;
+        const prev = parseFloat(calcPrevious);
+        const curr = parseFloat(calcCurrent);
+        let res = 0;
+        switch(calcOp) {
+            case '+': res = prev + curr; break;
+            case '-': res = prev - curr; break;
+            case '*': res = prev * curr; break;
+            case '/': res = prev / curr; break;
+        }
+        calcCurrent = Math.round(res * 10000000) / 10000000;
+        calcCurrent = calcCurrent.toString();
+        newNum = true;
+    }
+</script>
+</body>
+</html>
+
